@@ -1,21 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Card,
-  CardContent,
-  Typography,
-  Box,
-  LinearProgress,
-  TextField,
-  Button,
-  Avatar,
-} from '@mui/material';
-import {
-  AttachMoney as MoneyIcon,
-  Add as AddIcon,
-  Remove as RemoveIcon,
-} from '@mui/icons-material';
 
 interface SpendingLimitProps {
   dailySpent: number;
@@ -52,138 +37,109 @@ export default function SpendingLimit({
     }
   };
 
-  const getProgressColor = () => {
-    if (spendingPercentage >= 100) return 'error';
-    if (spendingPercentage >= 80) return 'warning';
-    return 'success';
-  };
-
   return (
-    <Card>
-      <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
-              <MoneyIcon />
-            </Avatar>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                Spending Limit
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Track your daily expenses
-              </Typography>
-            </Box>
-          </Box>
-          <Box sx={{ textAlign: 'right' }}>
-            <Typography variant="body2" color="text.secondary">
-              Daily Limit
-            </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-              ${dailyLimit.toFixed(2)}
-            </Typography>
-          </Box>
-        </Box>
-        
-        {/* Progress Section */}
-        <Box sx={{ mb: 3 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                Today's Spending
-              </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                ${dailySpent.toFixed(2)}
-              </Typography>
-            </Box>
-            <Box sx={{ textAlign: 'right' }}>
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  fontWeight: 'bold',
-                  color: spendingPercentage >= 100 ? 'error.main' :
-                         spendingPercentage >= 80 ? 'warning.main' : 'success.main'
-                }}
-              >
-                {spendingPercentage.toFixed(1)}%
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                of limit
-              </Typography>
-            </Box>
-          </Box>
-          
-          <LinearProgress
-            variant="determinate"
-            value={Math.min(spendingPercentage, 100)}
-            color={getProgressColor()}
-            sx={{ height: 8, borderRadius: 4 }}
+    <div className="bg-[#1a1a2e] rounded-xl card-shadow-lg p-6 border border-[#27272a]">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center">
+          <div className="w-12 h-12 bg-[#3b82f6] rounded-xl flex items-center justify-center mr-4">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-white">Spending Limit</h2>
+            <p className="text-sm text-[#a1a1aa]">Track your daily expenses</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="text-sm text-[#a1a1aa]">Daily Limit</div>
+          <div className="text-lg font-bold text-white">${dailyLimit.toFixed(2)}</div>
+        </div>
+      </div>
+      
+      {/* Progress Bar */}
+      <div className="mb-6">
+        <div className="flex justify-between mb-3">
+          <div>
+            <div className="text-sm text-[#a1a1aa]">Today's Spending</div>
+            <div className="text-2xl font-bold text-white">${dailySpent.toFixed(2)}</div>
+          </div>
+          <div className="text-right">
+            <div className={`text-lg font-bold ${
+              spendingPercentage >= 100 
+                ? 'text-red-400' 
+                : spendingPercentage >= 80 
+                  ? 'text-yellow-400' 
+                  : 'text-green-400'
+            }`}>
+              {spendingPercentage.toFixed(1)}%
+            </div>
+            <div className="text-xs text-[#a1a1aa]">of limit</div>
+          </div>
+        </div>
+        <div className="w-full bg-[#27272a] rounded-full h-2">
+          <div 
+            className={`h-2 rounded-full transition-all duration-500 ${
+              spendingPercentage >= 100 
+                ? 'bg-red-500' 
+                : spendingPercentage >= 80 
+                  ? 'bg-yellow-500' 
+                  : 'bg-green-500'
+            }`}
+            style={{ width: `${Math.min(spendingPercentage, 100)}%` }}
           />
-          
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Remaining: ${remainingAmount.toFixed(2)}
-          </Typography>
-        </Box>
-        
-        {/* Quick Actions */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+        </div>
+        <div className="text-sm text-[#a1a1aa] mt-2">
+          Remaining: ${remainingAmount.toFixed(2)}
+        </div>
+      </div>
+      
+      {/* Quick Actions */}
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="expense" className="block text-sm font-medium text-white mb-2">
+            Add Expense
+          </label>
+          <div className="flex gap-3">
+            <input
+              id="expense"
+              type="number"
+              value={expenseAmount}
+              onChange={(e) => setExpenseAmount(e.target.value)}
+              placeholder="0.00"
+              className="flex-1 px-4 py-3 bg-[#27272a] border border-[#3b82f6]/30 rounded-lg focus:ring-2 focus:ring-[#3b82f6] focus:border-[#3b82f6] text-white placeholder-[#a1a1aa]"
+            />
+            <button
+              onClick={handleAddExpense}
+              className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors shadow-lg"
+            >
               Add Expense
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <TextField
-                type="number"
-                value={expenseAmount}
-                onChange={(e) => setExpenseAmount(e.target.value)}
-                placeholder="0.00"
-                size="small"
-                fullWidth
-                InputProps={{
-                  startAdornment: <Typography sx={{ mr: 1 }}>$</Typography>,
-                }}
-              />
-              <Button
-                variant="contained"
-                color="error"
-                onClick={handleAddExpense}
-                startIcon={<RemoveIcon />}
-                sx={{ minWidth: 120 }}
-              >
-                Expense
-              </Button>
-            </Box>
-          </Box>
-          
-          <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+            </button>
+          </div>
+        </div>
+        
+        <div>
+          <label htmlFor="income" className="block text-sm font-medium text-white mb-2">
+            Add Income
+          </label>
+          <div className="flex gap-3">
+            <input
+              id="income"
+              type="number"
+              value={incomeAmount}
+              onChange={(e) => setIncomeAmount(e.target.value)}
+              placeholder="0.00"
+              className="flex-1 px-4 py-3 bg-[#27272a] border border-[#3b82f6]/30 rounded-lg focus:ring-2 focus:ring-[#3b82f6] focus:border-[#3b82f6] text-white placeholder-[#a1a1aa]"
+            />
+            <button
+              onClick={handleAddIncome}
+              className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors shadow-lg"
+            >
               Add Income
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <TextField
-                type="number"
-                value={incomeAmount}
-                onChange={(e) => setIncomeAmount(e.target.value)}
-                placeholder="0.00"
-                size="small"
-                fullWidth
-                InputProps={{
-                  startAdornment: <Typography sx={{ mr: 1 }}>$</Typography>,
-                }}
-              />
-              <Button
-                variant="contained"
-                color="success"
-                onClick={handleAddIncome}
-                startIcon={<AddIcon />}
-                sx={{ minWidth: 120 }}
-              >
-                Income
-              </Button>
-            </Box>
-          </Box>
-        </Box>
-      </CardContent>
-    </Card>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

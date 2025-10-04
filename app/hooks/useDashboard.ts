@@ -15,21 +15,24 @@ export function useDashboard() {
       name: 'Emergency Fund',
       targetAmount: 5000,
       savedAmount: 1200,
-      color: 'green'
+      color: 'green',
+      isDefault: true
     },
     {
       id: '2', 
       name: 'Vacation',
       targetAmount: 2500,
       savedAmount: 800,
-      color: 'blue'
+      color: 'blue',
+      isDefault: false
     },
     {
       id: '3',
       name: 'New Laptop',
       targetAmount: 1500,
       savedAmount: 300,
-      color: 'purple'
+      color: 'purple',
+      isDefault: false
     }
   ]);
 
@@ -103,9 +106,25 @@ export function useDashboard() {
       name,
       targetAmount,
       savedAmount: 0,
-      color: ['green', 'blue', 'purple', 'yellow', 'pink'][goals.length % 5]
+      color: ['green', 'blue', 'purple', 'yellow', 'pink'][goals.length % 5],
+      isDefault: false
     };
     setGoals(prev => [...prev, newGoal]);
+  };
+
+  // Handle deleting a goal
+  const handleDeleteGoal = (goalId: string) => {
+    setGoals(prev => prev.filter(goal => goal.id !== goalId));
+  };
+
+  // Handle setting a goal as default
+  const handleSetDefaultGoal = (goalId: string) => {
+    setGoals(prev => 
+      prev.map(goal => ({
+        ...goal,
+        isDefault: goal.id === goalId
+      }))
+    );
   };
 
   // Update daily limit
@@ -126,6 +145,8 @@ export function useDashboard() {
     handleAddIncome,
     handleAddToGoal,
     handleCreateGoal,
+    handleDeleteGoal,
+    handleSetDefaultGoal,
     updateDailyLimit,
     resetDailySpending
   };
