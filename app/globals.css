@@ -1,12 +1,41 @@
 @import "tailwindcss";
 
 :root {
+  /* Default theme variables - will be overridden by JS */
   --background: #0f0f23;
   --foreground: #ffffff;
   --card-bg: #1a1a2e;
   --sidebar-bg: #16213e;
-  --accent-blue: #3b82f6;
+  --text-secondary: #a1a1aa;
+  --border-color: #27272a;
+  
+  /* Accent colors - will be set by theme context */
+  --accent-primary: #3b82f6;
+  --accent-secondary: #1d4ed8;
+  --accent-bg: #1e3a8a;
+  --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  
+  /* Legacy variables for backward compatibility */
+  --accent-blue: var(--accent-primary);
   --accent-purple: #8b5cf6;
+}
+
+/* Light theme overrides */
+body.light {
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+  --card-bg: #f8fafc;
+  --sidebar-bg: #f1f5f9;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+}
+
+/* Dark theme (default) */
+body.dark {
+  --background: #0f0f23;
+  --foreground: #ffffff;
+  --card-bg: #1a1a2e;
+  --sidebar-bg: #16213e;
   --text-secondary: #a1a1aa;
   --border-color: #27272a;
 }
@@ -28,6 +57,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Custom scrollbar */
@@ -160,4 +190,27 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .MuiButton-root:active {
   animation: pulse 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Gradient utility classes */
+.bg-gradient-primary {
+  background: var(--accent-gradient);
+}
+
+.bg-gradient-primary-hover:hover {
+  background: var(--accent-gradient);
+  filter: brightness(1.1);
+}
+
+/* Button gradient styles */
+.btn-gradient {
+  background: var(--accent-gradient);
+  transition: all 0.3s ease;
+}
+
+.btn-gradient:hover {
+  background: var(--accent-gradient);
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }

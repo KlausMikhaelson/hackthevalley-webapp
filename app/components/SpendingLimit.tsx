@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { AttachMoney as AttachMoneyIcon, Add } from '@mui/icons-material';
 
 interface SpendingLimitProps {
   dailySpent: number;
@@ -17,6 +18,7 @@ export default function SpendingLimit({
 }: SpendingLimitProps) {
   const [expenseAmount, setExpenseAmount] = useState('');
   const [incomeAmount, setIncomeAmount] = useState('');
+  const [showTransactionDialog, setShowTransactionDialog] = useState(false);
   
   const spendingPercentage = dailySpent / dailyLimit * 100;
   const remainingAmount = dailyLimit - dailySpent;
@@ -38,46 +40,44 @@ export default function SpendingLimit({
   };
 
   return (
-    <div className="bg-[#1a1a2e] rounded-xl card-shadow-lg p-6 border border-[#27272a]">
+    <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)]">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
-          <div className="w-12 h-12 bg-[#3b82f6] rounded-xl flex items-center justify-center mr-4">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-            </svg>
+          <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mr-4">
+            <AttachMoneyIcon className="text-white" sx={{ fontSize: 24 }} />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Spending Limit</h2>
-            <p className="text-sm text-[#a1a1aa]">Track your daily expenses</p>
+            <h2 className="text-xl font-bold text-[var(--foreground)]">Spending Limit</h2>
           </div>
         </div>
-        <div className="text-right">
-          <div className="text-sm text-[#a1a1aa]">Daily Limit</div>
-          <div className="text-lg font-bold text-white">${dailyLimit.toFixed(2)}</div>
-        </div>
+        <button
+          onClick={() => setShowTransactionDialog(true)}
+          className="w-10 h-10 btn-gradient text-white rounded-lg flex items-center justify-center transition-colors text-xl font-bold"
+        >
+          +
+        </button>
       </div>
       
       {/* Progress Bar */}
       <div className="mb-6">
         <div className="flex justify-between mb-3">
           <div>
-            <div className="text-sm text-[#a1a1aa]">Today's Spending</div>
-            <div className="text-2xl font-bold text-white">${dailySpent.toFixed(2)}</div>
+            <div className="text-sm text-[var(--text-secondary)]">Today's Spending</div>
+            <div className="text-2xl font-bold text-[var(--foreground)]">${dailySpent.toFixed(2)}</div>
           </div>
           <div className="text-right">
-            <div className={`text-lg font-bold ${
+            <span className={`px-2 py-1 rounded text-xs font-semibold text-white ${
               spendingPercentage >= 100 
-                ? 'text-red-400' 
+                ? 'bg-red-500' 
                 : spendingPercentage >= 80 
-                  ? 'text-yellow-400' 
-                  : 'text-green-400'
+                  ? 'bg-yellow-500' 
+                  : 'bg-[var(--accent-primary)]'
             }`}>
               {spendingPercentage.toFixed(1)}%
-            </div>
-            <div className="text-xs text-[#a1a1aa]">of limit</div>
+            </span>
           </div>
         </div>
-        <div className="w-full bg-[#27272a] rounded-full h-2">
+        <div className="w-full bg-[var(--border-color)] rounded-full h-2">
           <div 
             className={`h-2 rounded-full transition-all duration-500 ${
               spendingPercentage >= 100 
@@ -93,53 +93,67 @@ export default function SpendingLimit({
           Remaining: ${remainingAmount.toFixed(2)}
         </div>
       </div>
-      
-      {/* Quick Actions */}
-      <div className="space-y-4">
-        <div>
-          <label htmlFor="expense" className="block text-sm font-medium text-white mb-2">
-            Add Expense
-          </label>
-          <div className="flex gap-3">
-            <input
-              id="expense"
-              type="number"
-              value={expenseAmount}
-              onChange={(e) => setExpenseAmount(e.target.value)}
-              placeholder="0.00"
-              className="flex-1 px-4 py-3 bg-[#27272a] border border-[#3b82f6]/30 rounded-lg focus:ring-2 focus:ring-[#3b82f6] focus:border-[#3b82f6] text-white placeholder-[#a1a1aa]"
-            />
-            <button
-              onClick={handleAddExpense}
-              className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors shadow-lg"
-            >
-              Add Expense
-            </button>
+
+      {/* Transaction Dialog */}
+      {showTransactionDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--card-bg)] rounded-xl p-6 max-w-md w-full border border-[var(--border-color)]">
+            <h3 className="text-xl font-bold text-[var(--foreground)] mb-4">Add Transaction</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Add Expense</label>
+                <div className="flex gap-3">
+                  <input
+                    type="number"
+                    value={expenseAmount}
+                    onChange={(e) => setExpenseAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)] text-[var(--foreground)] placeholder-[var(--text-secondary)]"
+                  />
+                  <button
+                    onClick={() => {
+                      handleAddExpense();
+                      setShowTransactionDialog(false);
+                    }}
+                    className="w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center transition-colors"
+                  >
+                    <Add sx={{ fontSize: 16 }} />
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Add Income</label>
+                <div className="flex gap-3">
+                  <input
+                    type="number"
+                    value={incomeAmount}
+                    onChange={(e) => setIncomeAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)] text-[var(--foreground)] placeholder-[var(--text-secondary)]"
+                  />
+                  <button
+                    onClick={() => {
+                      handleAddIncome();
+                      setShowTransactionDialog(false);
+                    }}
+                    className="w-10 h-10 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center transition-colors"
+                  >
+                    <Add sx={{ fontSize: 16 }} />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowTransactionDialog(false)}
+                className="flex-1 px-4 py-2 bg-[var(--border-color)] hover:bg-[var(--text-secondary)]/20 text-[var(--foreground)] font-medium rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
-        
-        <div>
-          <label htmlFor="income" className="block text-sm font-medium text-white mb-2">
-            Add Income
-          </label>
-          <div className="flex gap-3">
-            <input
-              id="income"
-              type="number"
-              value={incomeAmount}
-              onChange={(e) => setIncomeAmount(e.target.value)}
-              placeholder="0.00"
-              className="flex-1 px-4 py-3 bg-[#27272a] border border-[#3b82f6]/30 rounded-lg focus:ring-2 focus:ring-[#3b82f6] focus:border-[#3b82f6] text-white placeholder-[#a1a1aa]"
-            />
-            <button
-              onClick={handleAddIncome}
-              className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors shadow-lg"
-            >
-              Add Income
-            </button>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
