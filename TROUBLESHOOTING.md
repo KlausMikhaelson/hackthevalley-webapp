@@ -120,6 +120,17 @@ npm run lint
 npm run lint -- --fix
 ```
 
+### Issue: "Failed to load config 'next/core-web-vitals'"
+
+**Cause:** Missing ESLint Next.js config package.
+
+**Solution:**
+```bash
+npm install --save-dev eslint-config-next
+```
+
+This is already installed if you ran `npm install` after the migration.
+
 ---
 
 ## Test-Specific Issues
