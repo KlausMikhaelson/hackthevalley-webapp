@@ -112,17 +112,9 @@ export default function Goals({ goals, onAddToGoal, onCreateGoal, onDeleteGoal, 
               <Button
                 variant="contained"
                 onClick={() => setShowCreateDialog(true)}
-                startIcon={<AddIcon />}
-                // sx={{
-                //   background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
-                //   boxShadow: '0 4px 14px rgba(25, 118, 210, 0.3)',
-                //   '&:hover': {
-                //     background: 'linear-gradient(135deg, #1565c0 0%, #1976d2 100%)',
-                //     boxShadow: '0 6px 20px rgba(25, 118, 210, 0.4)',
-                //   },
-                // }}
+                sx={{ fontSize: 18 }}
               >
-
+                + 
               </Button>
             </Box>
           )}
