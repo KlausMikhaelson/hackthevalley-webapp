@@ -58,14 +58,10 @@
             "jsx": "react",
             "esModuleInterop": true,
             "allowSyntheticDefaultImports": true
-          }
+          },
+          "isolatedModules": true
         }
       ]
-    },
-    "globals": {
-      "ts-jest": {
-        "isolatedModules": true
-      }
     }
   }
 }
