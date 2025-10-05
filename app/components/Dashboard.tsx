@@ -5,12 +5,14 @@ import Sidebar from './Sidebar';
 import SpendingLimit from './SpendingLimit';
 import Goals from './Goals';
 import { useDashboard } from '../hooks/useDashboard';
+import Analytics from './Analytics';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const {
     dailySpent,
     dailyLimit,
+    weeklySpending,
     goals,
     handleAddExpense,
     handleAddIncome,
@@ -170,11 +172,8 @@ export default function Dashboard() {
           )}
 
           {activeTab === 'analytics' && (
-            <div className="space-y-6">
-              <div className="bg-[#1a1a2e] rounded-xl card-shadow-lg p-6 border border-[#27272a]">
-                <h2 className="text-xl font-bold text-white mb-4">Coming Soon</h2>
-                <p className="text-[#a1a1aa]">Advanced analytics and insights will be available here.</p>
-              </div>
+            <div className="space-y-6 max-w-5xl">
+              <Analytics weeklySpending={weeklySpending} dailyLimit={dailyLimit} goals={goals} />
             </div>
           )}
 
