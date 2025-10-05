@@ -1,6 +1,18 @@
-import { clerkMiddleware } from '@clerk/nextjs/server';
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
-export default clerkMiddleware();
+const isPublicRoute = createRouteMatcher([
+  '/api/purchases(.*)',
+  '/api/goals/add-savings',
+  '/api/savings/(.*)'
+]);
+
+export default clerkMiddleware((auth, req) => {
+  // Skip authentication for /api/purchases routes
+  if (isPublicRoute(req)) {
+    return NextResponse.next();
+  }
+});
 
 export const config = {
   matcher: [

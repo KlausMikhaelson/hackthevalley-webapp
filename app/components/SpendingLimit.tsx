@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import { AttachMoney as AttachMoneyIcon, Add } from '@mui/icons-material';
+import RoastDialog from './RoastDialog';
+import { useGoals } from '../hooks/useGoals';
+import { useUser } from '@clerk/nextjs';
 
 interface Purchase {
   id: string;
@@ -29,17 +32,56 @@ export default function SpendingLimit({
   showRecentPurchases = false
 }: SpendingLimitProps) {
   const [expenseAmount, setExpenseAmount] = useState('');
+  const [expenseDescription, setExpenseDescription] = useState('');
   const [incomeAmount, setIncomeAmount] = useState('');
   const [showTransactionDialog, setShowTransactionDialog] = useState(false);
+  const [showRoastDialog, setShowRoastDialog] = useState(false);
+  const [roastData, setRoastData] = useState<any>(null);
+  
+  const { user } = useUser();
+  const { checkSpending } = useGoals(user?.id || null);
   
   const spendingPercentage = dailySpent / dailyLimit * 100;
   const remainingAmount = dailyLimit - dailySpent;
   
-  const handleAddExpense = () => {
+  const handleAddExpense = async () => {
+    const amount = parseFloat(expenseAmount);
+    if (amount > 0 && user?.id) {
+      // Check spending before adding expense
+      const checkResult = await checkSpending(
+        expenseDescription || 'Purchase',
+        amount
+      );
+      
+      if (checkResult && checkResult.is_overspending && checkResult.roast_message) {
+        // Show roast dialog
+        setRoastData({
+          roastMessage: checkResult.roast_message,
+          itemName: expenseDescription || 'Purchase',
+          price: amount,
+          dailyLimit: checkResult.daily_limit,
+          spentToday: checkResult.spent_today,
+          newTotal: checkResult.new_total
+        });
+        setShowRoastDialog(true);
+      } else {
+        // Proceed with expense
+        onAddExpense(amount);
+        setExpenseAmount('');
+        setExpenseDescription('');
+        setShowTransactionDialog(false);
+      }
+    }
+  };
+  
+  const handleProceedAnyway = () => {
     const amount = parseFloat(expenseAmount);
     if (amount > 0) {
       onAddExpense(amount);
       setExpenseAmount('');
+      setExpenseDescription('');
+      setShowRoastDialog(false);
+      setShowTransactionDialog(false);
     }
   };
   
@@ -148,23 +190,29 @@ export default function SpendingLimit({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Add Expense</label>
-                <div className="flex gap-3">
+                <div className="space-y-2">
                   <input
-                    type="number"
-                    value={expenseAmount}
-                    onChange={(e) => setExpenseAmount(e.target.value)}
-                    placeholder="0.00"
-                    className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)] text-[var(--foreground)] placeholder-[var(--text-secondary)]"
+                    type="text"
+                    value={expenseDescription}
+                    onChange={(e) => setExpenseDescription(e.target.value)}
+                    placeholder="What are you buying?"
+                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)] text-[var(--foreground)] placeholder-[var(--text-secondary)]"
                   />
-                  <button
-                    onClick={() => {
-                      handleAddExpense();
-                      setShowTransactionDialog(false);
-                    }}
-                    className="w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center transition-colors"
-                  >
-                    <Add sx={{ fontSize: 16 }} />
-                  </button>
+                  <div className="flex gap-3">
+                    <input
+                      type="number"
+                      value={expenseAmount}
+                      onChange={(e) => setExpenseAmount(e.target.value)}
+                      placeholder="0.00"
+                      className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)] text-[var(--foreground)] placeholder-[var(--text-secondary)]"
+                    />
+                    <button
+                      onClick={handleAddExpense}
+                      className="w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center transition-colors"
+                    >
+                      <Add sx={{ fontSize: 16 }} />
+                    </button>
+                  </div>
                 </div>
               </div>
               <div>
@@ -199,6 +247,26 @@ export default function SpendingLimit({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Roast Dialog */}
+      {showRoastDialog && roastData && (
+        <RoastDialog
+          isOpen={showRoastDialog}
+          onClose={() => {
+            setShowRoastDialog(false);
+            setShowTransactionDialog(false);
+            setExpenseAmount('');
+            setExpenseDescription('');
+          }}
+          roastMessage={roastData.roastMessage}
+          itemName={roastData.itemName}
+          price={roastData.price}
+          dailyLimit={roastData.dailyLimit}
+          spentToday={roastData.spentToday}
+          newTotal={roastData.newTotal}
+          onProceedAnyway={handleProceedAnyway}
+        />
       )}
     </div>
   );

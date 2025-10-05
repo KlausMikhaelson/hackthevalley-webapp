@@ -278,7 +278,160 @@ async function roastPurchase(items: Record<string, string>, amount: string, goal
 
 ---
 
+---
+
+### 4. POST /api/purchases/add
+
+Add a new purchase to the user's database with automatic AI categorization.
+
+**Authentication:** Required (Clerk session)
+
+#### Request Body
+
+```json
+{
+  "item_name": "Wireless Headphones",
+  "price": 79.99,
+  "currency": "USD",
+  "website": "amazon.com",
+  "url": "https://amazon.com/product/12345",
+  "description": "Sony WH-1000XM4 Wireless Noise Canceling Headphones",
+  "purchase_date": "2025-10-05T08:23:56Z",
+  "metadata": {
+    "order_id": "112-1234567-1234567"
+  }
+}
+```
+
+#### Parameters
+
+- `item_name` (string, required): Name of the purchased item
+- `price` (number, required): Price in decimal format
+- `website` (string, required): Domain name of the website
+- `currency` (string, optional): Currency code (default: "USD")
+- `url` (string, optional): Full URL of the product page
+- `description` (string, optional): Additional product details
+- `purchase_date` (string, optional): ISO 8601 date string (default: current time)
+- `metadata` (object, optional): Additional data to store
+
+#### Response
+
+**Success (201)**
+```json
+{
+  "success": true,
+  "purchase": {
+    "id": "507f1f77bcf86cd799439011",
+    "item_name": "Wireless Headphones",
+    "price": 79.99,
+    "currency": "USD",
+    "category": "entertainment",
+    "website": "amazon.com",
+    "url": "https://amazon.com/product/12345",
+    "description": "Sony WH-1000XM4 Wireless Noise Canceling Headphones",
+    "purchase_date": "2025-10-05T08:23:56.000Z",
+    "created_at": "2025-10-05T08:24:01.000Z"
+  },
+  "message": "Purchase added successfully"
+}
+```
+
+**Error (401)**
+```json
+{
+  "error": "Unauthorized - Please sign in"
+}
+```
+
+**Error (400)**
+```json
+{
+  "error": "Missing required fields: item_name, price, website"
+}
+```
+
+#### Example
+
+```bash
+curl -X POST http://localhost:3000/api/purchases/add \
+  -H "Content-Type: application/json" \
+  -H "Cookie: __session=YOUR_SESSION_COOKIE" \
+  -d '{
+    "item_name": "Nike Shoes",
+    "price": 120.00,
+    "website": "nike.com"
+  }'
+```
+
+---
+
+### 5. GET /api/purchases/list
+
+Retrieve user's purchases with optional filters and statistics.
+
+**Authentication:** Required (Clerk session)
+
+#### Query Parameters
+
+- `limit` (number, optional): Number of results (default: 50, max: 100)
+- `offset` (number, optional): Pagination offset (default: 0)
+- `category` (string, optional): Filter by category
+- `start_date` (ISO date, optional): Filter purchases after this date
+- `end_date` (ISO date, optional): Filter purchases before this date
+- `sort` (string, optional): 'asc' or 'desc' (default: 'desc')
+
+#### Response
+
+**Success (200)**
+```json
+{
+  "success": true,
+  "purchases": [
+    {
+      "id": "507f1f77bcf86cd799439011",
+      "item_name": "Wireless Headphones",
+      "price": 79.99,
+      "currency": "USD",
+      "category": "entertainment",
+      "website": "amazon.com",
+      "purchase_date": "2025-10-05T08:23:56.000Z",
+      "created_at": "2025-10-05T08:24:01.000Z"
+    }
+  ],
+  "pagination": {
+    "total": 150,
+    "limit": 50,
+    "offset": 0,
+    "has_more": true
+  },
+  "statistics": {
+    "total_purchases": 150,
+    "total_spent": 5432.10,
+    "category_breakdown": {
+      "food": { "total_spent": 1200.50, "count": 45 },
+      "fashion": { "total_spent": 890.00, "count": 12 }
+    }
+  }
+}
+```
+
+#### Example
+
+```bash
+curl -X GET "http://localhost:3000/api/purchases/list?limit=20&category=fashion" \
+  -H "Cookie: __session=YOUR_SESSION_COOKIE"
+```
+
+---
+
 ## Changelog
+
+### Version 2.0.0
+- Added POST /api/purchases/add endpoint for purchase tracking
+- Added GET /api/purchases/list endpoint for retrieving purchases
+- Integrated Clerk authentication
+- Added MongoDB for data persistence
+- AI-powered automatic categorization
 
 ### Version 1.0.0
 - Initial API release

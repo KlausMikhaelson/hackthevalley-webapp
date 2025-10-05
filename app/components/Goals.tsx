@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useUser } from '@clerk/nextjs';
+import { useGoals } from '../hooks/useGoals';
 import { CheckCircle, FavoriteBorder, Star, StarBorder, Delete, Add, TrackChanges, Edit } from '@mui/icons-material';
 
 export interface Goal {
@@ -14,18 +16,66 @@ export interface Goal {
 }
 
 interface GoalsProps {
-  goals: Goal[];
-  onAddToGoal: (goalId: string, amount: number) => void;
+  goals?: Goal[];
+  onAddToGoal?: (goalId: string, amount: number) => void;
   onCreateGoal?: (name: string, targetAmount: number) => void;
   onUpdateGoal?: (goalId: string, updates: Partial<Goal>) => void;
   onDeleteGoal?: (goalId: string) => void;
   onSetDefaultGoal?: (goalId: string) => void;
 }
 
-export default function Goals({ goals, onAddToGoal, onCreateGoal, onUpdateGoal, onDeleteGoal, onSetDefaultGoal }: GoalsProps) {
+export default function Goals({ goals: goalsProp, onAddToGoal: onAddToGoalProp, onCreateGoal: onCreateGoalProp, onDeleteGoal: onDeleteGoalProp, onSetDefaultGoal: onSetDefaultGoalProp }: GoalsProps) {
   const [newGoalName, setNewGoalName] = useState('');
   const [newGoalTarget, setNewGoalTarget] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  
+  // Use Clerk user
+  const { user } = useUser();
+  
+  // Use API-backed goals if no props provided
+  const { 
+    goals: apiGoals, 
+    loading, 
+    error,
+    createGoal: createGoalAPI,
+    updateGoal: updateGoalAPI,
+    fetchGoals
+  } = useGoals(user?.id || null);
+  
+  // Use prop goals if provided, otherwise use API goals
+  const goals = goalsProp || apiGoals.filter(g => g.type === 'savings').map(g => ({
+    id: g.id,
+    name: g.name,
+    targetAmount: g.target_amount,
+    savedAmount: g.current_amount,
+    color: 'blue',
+    isDefault: g.is_default
+  }));
+  
+  // Use prop handlers if provided, otherwise use API handlers
+  const handleAddToGoalAPI = async (goalId: string, amount: number) => {
+    const goal = goals.find(g => g.id === goalId);
+    if (goal) {
+      await updateGoalAPI(goalId, { 
+        current_amount: goal.savedAmount + amount 
+      });
+    }
+  };
+  
+  const handleCreateGoalAPI = async (name: string, targetAmount: number) => {
+    if (user?.id) {
+      await createGoalAPI(name, 'savings', targetAmount, 'one_time', false);
+    }
+  };
+  
+  const handleSetDefaultGoalAPI = async (goalId: string) => {
+    await updateGoalAPI(goalId, { is_default: true });
+  };
+  
+  const onAddToGoal = onAddToGoalProp || handleAddToGoalAPI;
+  const onCreateGoal = onCreateGoalProp || handleCreateGoalAPI;
+  const onSetDefaultGoal = onSetDefaultGoalProp || handleSetDefaultGoalAPI;
+  const onDeleteGoal = onDeleteGoalProp;
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [editGoalName, setEditGoalName] = useState('');
   const [editGoalDeadline, setEditGoalDeadline] = useState('');
@@ -92,6 +142,17 @@ export default function Goals({ goals, onAddToGoal, onCreateGoal, onUpdateGoal, 
     return 'bg-[var(--accent-secondary)]';
   };
 
+  // Show loading state
+  if (loading && !goalsProp) {
+    return (
+      <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)]">
+        <div className="text-center py-8">
+          <p className="text-[var(--text-secondary)]">Loading goals...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)]">
       <div className="flex items-center justify-between mb-6">
@@ -104,14 +165,12 @@ export default function Goals({ goals, onAddToGoal, onCreateGoal, onUpdateGoal, 
             <p className="text-sm text-[var(--text-secondary)]">Track your financial targets</p>
           </div>
         </div>
-        {onCreateGoal && (
-          <button
-            onClick={() => setShowCreateDialog(true)}
-            className="w-10 h-10 btn-gradient text-white rounded-lg flex items-center justify-center transition-colors"
-          >
-            <Add sx={{ fontSize: 20 }} />  {/* Changed from text-xl and font-bold to icon */}
-          </button>
-        )}
+        <button
+          onClick={() => setShowCreateDialog(true)}
+          className="w-10 h-10 btn-gradient text-white rounded-lg flex items-center justify-center transition-colors"
+        >
+          <Add sx={{ fontSize: 20 }} />
+        </button>
       </div>
 
       {/* Goals List */}

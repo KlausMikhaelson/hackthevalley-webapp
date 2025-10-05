@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 
 import connectDB from '../../../../lib/mongodb';
 import User from '../../../../models/User';
+import Goal from '../../../../models/Goal';
 
 export async function POST(req: Request) {
     const SIGNING_SECRET = process.env.SIGNING_SECRET
@@ -74,6 +75,24 @@ export async function POST(req: Request) {
             });
 
             console.log('Successfully created user:', newUser);
+
+            // Create default daily spending goal for the new user
+            try {
+                const defaultGoal = await Goal.create({
+                    user_id: id,
+                    name: 'Daily Spending Limit',
+                    type: 'daily_spending',
+                    target_amount: 100, // Default $100 daily limit
+                    current_amount: 0,
+                    period: 'daily',
+                    is_default: true,
+                });
+
+                console.log('Successfully created default goal:', defaultGoal);
+            } catch (goalError) {
+                console.error('Error creating default goal:', goalError);
+                // Don't fail user creation if goal creation fails
+            }
 
             return new Response(JSON.stringify({ success: true, user: newUser }), {
                 status: 201,
