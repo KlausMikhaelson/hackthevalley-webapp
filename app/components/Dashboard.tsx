@@ -17,6 +17,122 @@ import {
   TrackChanges as GoalsIcon
 } from '@mui/icons-material';
 
+// Weekly Chart Component
+function WeeklyChart({ weeklySpending, dailyLimit }: { weeklySpending: any[], dailyLimit: number }) {
+  const width = 460;
+  const height = 220;
+  const paddingX = 32;
+  const paddingY = 24;
+  
+  const sorted = [...weeklySpending].sort((a,b) => a.date.localeCompare(b.date));
+  const lastDateStr = sorted.length ? sorted[sorted.length - 1].date : new Date().toISOString().slice(0,10);
+  const lastDate = new Date(lastDateStr + 'T00:00:00');
+  const byDate = new Map(sorted.map(d => [d.date, d.spent]));
+  const data = Array.from({ length: 7 }).map((_, idx) => {
+    const d = new Date(lastDate);
+    d.setDate(lastDate.getDate() - (6 - idx));
+    const ds = d.toISOString().slice(0,10);
+    return { date: ds, spent: byDate.get(ds) ?? 0 };
+  });
+  const maxSpent = Math.max(dailyLimit, ...data.map(d => d.spent), 10);
+
+  const points = data.map((d, i) => {
+    const x = paddingX + (i / Math.max(1, data.length - 1)) * (width - paddingX * 2);
+    const y = height - paddingY - (d.spent / maxSpent) * (height - paddingY * 2);
+    const dateObj = new Date(d.date + 'T00:00:00');
+    return { x, y, label: dateObj.toLocaleDateString(undefined, { weekday: 'short' }), value: d.spent, date: d.date };
+  });
+
+  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+
+  return (
+    <div className="w-full">
+      {points.length < 2 ? (
+        <p className="text-[var(--text-secondary)] text-sm">Not enough data yet. Add some expenses across days to see the line graph.</p>
+      ) : (
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto max-w-full max-h-[300px] mx-auto">
+          <defs>
+            <linearGradient id="gradient" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="var(--accent-primary)" stopOpacity={0.6} />
+              <stop offset="100%" stopColor="var(--accent-primary)" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <path d={linePath} fill="none" stroke="var(--accent-primary)" strokeWidth={2} />
+          <path
+            d={`${linePath} L${points[points.length - 1].x},${height - paddingY} L${points[0].x},${height - paddingY} Z`}
+            fill="url(#gradient)"
+            opacity={0.25}
+          />
+          {points.map(p => (
+            <g key={p.date}>
+              <circle cx={p.x} cy={p.y} r={4} fill="var(--accent-primary)" stroke="var(--card-bg)" strokeWidth={2} />
+              <text x={p.x} y={height - paddingY + 14} textAnchor="middle" className="fill-[var(--text-secondary)] text-[10px]">
+                {p.label}
+              </text>
+            </g>
+          ))}
+        </svg>
+      )}
+    </div>
+  );
+}
+
+// Categories Chart Component  
+function CategoriesChart() {
+  const categoryPalette = ['var(--accent-primary)','#10b981','#f59e0b','#8b5cf6','#ec4899','#06b6d4'];
+  const sampleCategories = [
+    { name: 'Food', amount: 120 },
+    { name: 'Transport', amount: 45 },
+    { name: 'Entertainment', amount: 60 },
+    { name: 'Utilities', amount: 80 },
+    { name: 'Shopping', amount: 95 },
+    { name: 'Other', amount: 30 }
+  ];
+  const catTotal = sampleCategories.reduce((s,c) => s + c.amount, 0) || 1;
+  const pieSize = 200;
+  const r = pieSize / 2 - 8;
+  
+  let acc = 0;
+  const categorySlices = sampleCategories.map((c, idx) => {
+    const ang = (c.amount / catTotal) * Math.PI * 2;
+    const start = acc;
+    const end = acc + ang;
+    acc = end;
+    const largeArc = ang > Math.PI ? 1 : 0;
+    const x1 = r + r * Math.sin(start);
+    const y1 = r - r * Math.cos(start);
+    const x2 = r + r * Math.sin(end);
+    const y2 = r - r * Math.cos(end);
+    const path = `M ${r} ${r} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+    const percent = (c.amount / catTotal) * 100;
+    return { c, path, percent, color: categoryPalette[idx % categoryPalette.length] };
+  });
+
+  return (
+    <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
+      <svg width={pieSize} height={pieSize} viewBox={`0 0 ${pieSize} ${pieSize}`}>      
+        {categorySlices.map(s => (
+          <path key={s.c.name} d={s.path} fill={s.color} stroke="var(--card-bg)" strokeWidth={2} />
+        ))}
+        <circle cx={r} cy={r} r={r * 0.45} fill="var(--card-bg)" stroke="var(--border-color)" strokeWidth={1} />
+        <text x={r} y={r - 4} textAnchor="middle" className="fill-[var(--foreground)] text-sm font-semibold">Total</text>
+        <text x={r} y={r + 14} textAnchor="middle" className="fill-[var(--text-secondary)] text-xs">${catTotal}</text>
+      </svg>
+      <div className="space-y-2 max-w-xs">
+        {categorySlices.map(s => (
+          <div key={s.c.name} className="flex items-center justify-between text-xs bg-[var(--background)] px-3 py-2 rounded-lg border border-[var(--border-color)]">
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-3 h-3 rounded-sm" style={{ background: s.color }} />
+              <span className="text-[var(--foreground)] font-medium">{s.c.name}</span>
+            </div>
+            <div className="text-[var(--text-secondary)]">${s.c.amount} ({s.percent.toFixed(1)}%)</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // Default Goal Card Component for Dashboard
 function DefaultGoalCard({ goal, onAddToGoal }: { goal: Goal | undefined, onAddToGoal: (goalId: string, amount: number) => void }) {
   const [addAmount, setAddAmount] = useState('');
@@ -61,7 +177,7 @@ function DefaultGoalCard({ goal, onAddToGoal }: { goal: Goal | undefined, onAddT
   };
 
   return (
-    <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)]">
+    <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)] flex-shrink-0">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
           <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mr-4">
@@ -148,6 +264,7 @@ function DefaultGoalCard({ goal, onAddToGoal }: { goal: Goal | undefined, onAddT
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [selectedChart, setSelectedChart] = useState<'weekly' | 'categories' | 'none'>('none');
   const {
     dailySpent,
     dailyLimit,
@@ -362,6 +479,37 @@ export default function Dashboard() {
                   goal={defaultGoal}
                   onAddToGoal={handleAddToGoal}
                 />
+              </div>
+
+              {/* Analytics Chart Section */}
+              <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)]">
+                <div className="flex justify-between items-center mb-4">
+                  <select
+                    value={selectedChart}
+                    onChange={(e) => setSelectedChart(e.target.value as 'weekly' | 'categories' | 'none')}
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md 
+                             bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
+                             focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="none">Select Chart</option>
+                    <option value="weekly">Weekly Spending</option>
+                    <option value="categories">Category Breakdown</option>
+                  </select>
+                </div>
+                
+                <div className="h-64">
+                  {selectedChart === 'weekly' && (
+                    <WeeklyChart weeklySpending={weeklySpending} dailyLimit={dailyLimit} />
+                  )}
+                  {selectedChart === 'categories' && (
+                    <CategoriesChart />
+                  )}
+                  {selectedChart === 'none' && (
+                    <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                      <p>Select a chart to display analytics</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}

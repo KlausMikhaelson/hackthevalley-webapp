@@ -54,7 +54,7 @@ export default function SpendingLimit({
   return (
     <div className={showRecentPurchases ? "flex flex-col h-[calc(100vh-2rem)]" : ""}>  
       {/* Main Spending Limit Card */}
-      <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)] flex-shrink-0 mb-6">
+      <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)] flex-shrink-0">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
             <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mr-4">
@@ -105,7 +105,7 @@ export default function SpendingLimit({
 
       {/* Recent Purchases List - only show when showRecentPurchases is true */}
       {showRecentPurchases && (
-        <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg border border-[var(--border-color)] flex flex-col flex-1 overflow-hidden">
+        <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg border border-[var(--border-color)] flex flex-col flex-1 overflow-hidden mt-6">
           <div className="p-6 pb-0">
             <h3 className="text-lg font-bold text-[var(--foreground)] mb-4">Recent Purchases</h3>
           </div>
