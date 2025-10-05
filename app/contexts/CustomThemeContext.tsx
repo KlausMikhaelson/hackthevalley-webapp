@@ -38,7 +38,7 @@ export const useCustomTheme = () => {
 
 export const colorSchemes: Record<ColorScheme, { name: string; colors: { primary: string; secondary: string; bg: string; gradient: string } }> = {
   blue: {
-    name: 'Blue',
+    name: 'Azure',
     colors: {
       primary: '#3b82f6',
       secondary: '#1d4ed8',
@@ -47,7 +47,7 @@ export const colorSchemes: Record<ColorScheme, { name: string; colors: { primary
     }
   },
   purple: {
-    name: 'Purple',
+    name: 'Cosmic',
     colors: {
       primary: '#8b5cf6',
       secondary: '#7c3aed',
@@ -56,7 +56,7 @@ export const colorSchemes: Record<ColorScheme, { name: string; colors: { primary
     }
   },
   green: {
-    name: 'Green',
+    name: 'Lime',
     colors: {
       primary: '#22c55e',
       secondary: '#16a34a',
@@ -65,7 +65,7 @@ export const colorSchemes: Record<ColorScheme, { name: string; colors: { primary
     }
   },
   orange: {
-    name: 'Orange',
+    name: 'Flame',
     colors: {
       primary: '#f97316',
       secondary: '#ea580c',
@@ -74,7 +74,7 @@ export const colorSchemes: Record<ColorScheme, { name: string; colors: { primary
     }
   },
   pink: {
-    name: 'Pink',
+    name: 'Magenta',
     colors: {
       primary: '#ec4899',
       secondary: '#db2777',
@@ -83,7 +83,7 @@ export const colorSchemes: Record<ColorScheme, { name: string; colors: { primary
     }
   },
   cyan: {
-    name: 'Cyan',
+    name: 'Aqua',
     colors: {
       primary: '#06b6d4',
       secondary: '#0891b2',
@@ -101,7 +101,7 @@ export const colorSchemes: Record<ColorScheme, { name: string; colors: { primary
     }
   },
   indigo: {
-    name: 'Indigo',
+    name: 'Violet',
     colors: {
       primary: '#6366f1',
       secondary: '#4f46e5',

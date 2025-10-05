@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CheckCircle, FavoriteBorder, Star, StarBorder, Delete, Add, TrackChanges } from '@mui/icons-material';
+import { CheckCircle, FavoriteBorder, Star, StarBorder, Delete, Add, TrackChanges, Edit } from '@mui/icons-material';
 
 export interface Goal {
   id: string;
@@ -9,6 +9,7 @@ export interface Goal {
   targetAmount: number;
   savedAmount: number;
   color: string;
+  deadline?: string; // ISO date string
   isDefault?: boolean;
 }
 
@@ -16,22 +17,46 @@ interface GoalsProps {
   goals: Goal[];
   onAddToGoal: (goalId: string, amount: number) => void;
   onCreateGoal?: (name: string, targetAmount: number) => void;
+  onUpdateGoal?: (goalId: string, updates: Partial<Goal>) => void;
   onDeleteGoal?: (goalId: string) => void;
   onSetDefaultGoal?: (goalId: string) => void;
 }
 
-export default function Goals({ goals, onAddToGoal, onCreateGoal, onDeleteGoal, onSetDefaultGoal }: GoalsProps) {
+export default function Goals({ goals, onAddToGoal, onCreateGoal, onUpdateGoal, onDeleteGoal, onSetDefaultGoal }: GoalsProps) {
   const [newGoalName, setNewGoalName] = useState('');
   const [newGoalTarget, setNewGoalTarget] = useState('');
-  const [addAmountValues, setAddAmountValues] = useState<Record<string, string>>({});
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
+  const [editGoalName, setEditGoalName] = useState('');
+  const [editGoalDeadline, setEditGoalDeadline] = useState('');
+  const [editAddAmount, setEditAddAmount] = useState('');
 
-  const handleAddToGoal = (goalId: string) => {
-    const amount = parseFloat(addAmountValues[goalId] || '0');
-    if (amount > 0) {
-      onAddToGoal(goalId, amount);
-      setAddAmountValues({ ...addAmountValues, [goalId]: '' });
+  const handleEditGoal = (goal: Goal) => {
+    setEditingGoal(goal);
+    setEditGoalName(goal.name);
+    setEditGoalDeadline(goal.deadline || '');
+    setEditAddAmount('');
+  };
+
+  const handleUpdateGoal = () => {
+    if (!editingGoal || !onUpdateGoal) return;
+    
+    const updates: Partial<Goal> = {
+      name: editGoalName.trim(),
+      deadline: editGoalDeadline || undefined
+    };
+    
+    // Add money if specified
+    const addAmount = parseFloat(editAddAmount);
+    if (addAmount > 0) {
+      updates.savedAmount = editingGoal.savedAmount + addAmount;
     }
+    
+    onUpdateGoal(editingGoal.id, updates);
+    setEditingGoal(null);
+    setEditGoalName('');
+    setEditGoalDeadline('');
+    setEditAddAmount('');
   };
 
   const handleCreateGoal = () => {
@@ -150,26 +175,23 @@ export default function Goals({ goals, onAddToGoal, onCreateGoal, onDeleteGoal, 
                   </div>
                 </div>
                 
-                {/* Add Money Section */}
-                <div className="flex gap-2">
-                  <div className="flex-1 relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]">$</span>
-                    <input
-                      type="number"
-                      value={addAmountValues[goal.id] || ''}
-                      onChange={(e) => setAddAmountValues({ 
-                        ...addAmountValues, 
-                        [goal.id]: e.target.value 
-                      })}
-                      placeholder="Amount to add"
-                      className="w-full pl-7 pr-3 py-2 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)] text-[var(--foreground)] placeholder-[var(--text-secondary)]"
-                    />
-                  </div>
+                {/* Goal Info */}
+                <div className="mb-3">
+                  {goal.deadline && (
+                    <div className="text-xs text-[var(--text-secondary)] mb-2">
+                      Deadline: {new Date(goal.deadline).toLocaleDateString()}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Edit Button */}
+                <div className="flex justify-end">
                   <button
-                    onClick={() => handleAddToGoal(goal.id)}
-                    className="w-10 h-10 btn-gradient text-white rounded-lg flex items-center justify-center transition-colors"
+                    onClick={() => handleEditGoal(goal)}
+                    className="px-3 py-1 bg-[var(--accent-primary)]/10 hover:bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] text-xs font-medium rounded border border-[var(--accent-primary)]/30 transition-colors flex items-center gap-1"
                   >
-                    <Add sx={{ fontSize: 16 }} />
+                    <Edit sx={{ fontSize: 16 }} />
+                    Edit Goal
                   </button>
                 </div>
               </div>
@@ -221,6 +243,64 @@ export default function Goals({ goals, onAddToGoal, onCreateGoal, onDeleteGoal, 
               >
                 <Add sx={{ fontSize: 16 }} />
                 Create Goal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Goal Dialog */}
+      {editingGoal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--card-bg)] rounded-xl p-6 max-w-md w-full border border-[var(--border-color)]">
+            <h3 className="text-xl font-bold text-[var(--foreground)] mb-4">Edit Goal: {editingGoal.name}</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Goal Name</label>
+                <input
+                  type="text"
+                  value={editGoalName}
+                  onChange={(e) => setEditGoalName(e.target.value)}
+                  placeholder="Goal name"
+                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)] text-[var(--foreground)] placeholder-[var(--text-secondary)]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Deadline (Optional)</label>
+                <input
+                  type="date"
+                  value={editGoalDeadline}
+                  onChange={(e) => setEditGoalDeadline(e.target.value)}
+                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)] text-[var(--foreground)]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Add Money (Optional)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]">$</span>
+                  <input
+                    type="number"
+                    value={editAddAmount}
+                    onChange={(e) => setEditAddAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full pl-7 pr-3 py-2 bg-[var(--background)] border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)] text-[var(--foreground)] placeholder-[var(--text-secondary)]"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setEditingGoal(null)}
+                className="flex-1 px-4 py-2 bg-[var(--border-color)] hover:bg-[var(--text-secondary)]/20 text-[var(--foreground)] font-medium rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateGoal}
+                className="flex-1 px-4 py-2 btn-gradient text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <Edit sx={{ fontSize: 16 }} />
+                Update Goal
               </button>
             </div>
           </div>
