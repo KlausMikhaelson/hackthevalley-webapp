@@ -80,10 +80,10 @@ export default function Analytics({ weeklySpending, dailyLimit, totalSaved, tota
   });
 
   return (
-  <div className="flex flex-col md:flex-row flex-wrap gap-8 items-start">
+  <div className="flex flex-col lg:flex-row gap-8 items-stretch h-full w-full">
       {/* Left column: Weekly chart + metric cards */}
-      <div className="flex flex-col gap-6 w-full max-w-lg">
-      <div className="bg-[#1a1a2e] rounded-xl card-shadow-lg p-6 border border-[#27272a] w-full">
+      <div className="flex flex-col gap-6 flex-1 min-w-0">
+      <div className="bg-[#1a1a2e] rounded-xl card-shadow-lg p-6 border border-[#27272a] w-full flex-1">
         <h2 className="text-xl font-bold text-white mb-4">Weekly Spending</h2>
       {points.length < 2 ? (
         <p className="text-[#a1a1aa] text-sm">Not enough data yet. Add some expenses across days to see the line graph.</p>
@@ -180,10 +180,10 @@ export default function Analytics({ weeklySpending, dailyLimit, totalSaved, tota
       </div>
 
   {/* Spending Categories Pie (Sample Data) */}
-  <div className="bg-[#1a1a2e] rounded-xl card-shadow-lg p-6 border border-[#27272a] w-full max-w-sm">
+  <div className="bg-[#1a1a2e] rounded-xl card-shadow-lg p-6 border border-[#27272a] flex-1 min-w-0">
         <h2 className="text-xl font-bold text-white mb-4">Spending by Category (Sample)</h2>
-        <div className="flex flex-wrap gap-8 items-center">
-          <svg width={pieSize} height={pieSize} viewBox={`0 0 ${pieSize} ${pieSize}`}>      
+        <div className="flex flex-col xl:flex-row gap-8 items-center justify-center h-full">
+          <svg width={pieSize} height={pieSize} viewBox={`0 0 ${pieSize} ${pieSize}`} className="flex-shrink-0">      
             {categorySlices.map(s => (
               <path key={s.c.name} d={s.path} fill={s.color} stroke="#0f0f23" strokeWidth={2} />
             ))}
@@ -192,7 +192,7 @@ export default function Analytics({ weeklySpending, dailyLimit, totalSaved, tota
             <text x={r} y={r - 4} textAnchor="middle" className="fill-white text-sm font-semibold">Total</text>
             <text x={r} y={r + 14} textAnchor="middle" className="fill-[#a1a1aa] text-xs">${catTotal}</text>
           </svg>
-          <div className="flex-1 space-y-2 min-w-[200px]">
+          <div className="flex-1 space-y-2 min-w-[250px] max-w-md">
             {categorySlices.map(s => (
               <div key={s.c.name} className="flex items-center justify-between text-xs bg-[#222237] px-3 py-2 rounded-lg border border-[#27272a]">
                 <div className="flex items-center gap-2">

@@ -72,9 +72,6 @@ function DefaultGoalCard({ goal, onAddToGoal }: { goal: Goal | undefined, onAddT
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`px-2 py-1 rounded text-xs font-semibold text-white ${getProgressColor(progressPercentage)}`}>
-            {progressPercentage.toFixed(1)}%
-          </span>
           <button
             onClick={() => setShowAddDialog(true)}
             className="w-10 h-10 btn-gradient text-white rounded-lg flex items-center justify-center transition-colors"
@@ -85,20 +82,24 @@ function DefaultGoalCard({ goal, onAddToGoal }: { goal: Goal | undefined, onAddT
       </div>
       
       <div className="mb-4">
-        <div className="flex justify-between text-sm mb-2">
-          <span className="text-[var(--text-secondary)]">Progress</span>
-          <span className="text-[var(--foreground)] font-semibold">
-            ${goal.savedAmount.toFixed(2)} / ${goal.targetAmount.toFixed(2)}
-          </span>
+        <div className="flex justify-between mb-3">
+          <div>
+            <div className="flex items-end gap-2">
+              <div className="text-2xl font-bold text-[var(--foreground)]">${goal.savedAmount.toFixed(2)}</div>
+              <div className="text-sm text-[#a1a1aa]">out of ${goal.targetAmount.toFixed(2)}</div>
+            </div>
+          </div>
         </div>
-        <div className="w-full bg-[var(--border-color)] rounded-full h-3">
+        <div className="w-full bg-[var(--border-color)] rounded-full h-6 relative">
           <div
-            className={`h-3 rounded-full transition-all duration-300 ${getProgressColor(progressPercentage)}`}
+            className={`h-6 rounded-full transition-all duration-300 ${getProgressColor(progressPercentage)}`}
             style={{ width: `${Math.min(progressPercentage, 100)}%` }}
           />
-        </div>
-        <div className="mt-2 text-sm text-[var(--text-secondary)]">
-          ${(goal.targetAmount - goal.savedAmount).toFixed(2)} remaining
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-xs font-semibold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+              {progressPercentage.toFixed(1)}%
+            </span>
+          </div>
         </div>
       </div>
 
@@ -163,6 +164,94 @@ export default function Dashboard() {
 
   const [showSettings, setShowSettings] = useState(false);
   const [newLimit, setNewLimit] = useState(dailyLimit.toString());
+
+  // Sample recent purchases data
+  const recentPurchases = [
+    {
+      id: '1',
+      amount: 45.99,
+      category: 'Shopping',
+      website: 'Amazon',
+      date: new Date('2025-10-04')
+    },
+    {
+      id: '2',
+      amount: 12.50,
+      category: 'Food & Dining',
+      website: 'Starbucks',
+      date: new Date('2025-10-04')
+    },
+    {
+      id: '3',
+      amount: 89.99,
+      category: 'Electronics',
+      website: 'Best Buy',
+      date: new Date('2025-10-03')
+    },
+    {
+      id: '4',
+      amount: 23.45,
+      category: 'Groceries',
+      website: 'Walmart',
+      date: new Date('2025-10-03')
+    },
+    {
+      id: '5',
+      amount: 15.99,
+      category: 'Entertainment',
+      website: 'Netflix',
+      date: new Date('2025-10-02')
+    },
+    {
+      id: '6',
+      amount: 34.99,
+      category: 'Transportation',
+      website: 'Uber',
+      date: new Date('2025-10-02')
+    },
+    {
+      id: '7',
+      amount: 67.89,
+      category: 'Clothing',
+      website: 'H&M',
+      date: new Date('2025-10-01')
+    },
+    {
+      id: '8',
+      amount: 19.99,
+      category: 'Books',
+      website: 'Barnes & Noble',
+      date: new Date('2025-10-01')
+    },
+    {
+      id: '9',
+      amount: 8.50,
+      category: 'Food & Dining',
+      website: 'McDonald\'s',
+      date: new Date('2025-09-30')
+    },
+    {
+      id: '10',
+      amount: 120.00,
+      category: 'Health & Fitness',
+      website: 'Planet Fitness',
+      date: new Date('2025-09-30')
+    },
+    {
+      id: '11',
+      amount: 56.78,
+      category: 'Gas',
+      website: 'Shell',
+      date: new Date('2025-09-29')
+    },
+    {
+      id: '12',
+      amount: 29.99,
+      category: 'Software',
+      website: 'Adobe',
+      date: new Date('2025-09-29')
+    }
+  ];
 
   const handleUpdateLimit = () => {
     const limit = parseFloat(newLimit);
@@ -243,20 +332,18 @@ export default function Dashboard() {
                     <div>
                       <p className="text-sm text-[var(--text-secondary)]">Money Saved</p>
                       <p className="text-2xl font-bold text-[var(--foreground)]">$0.00</p>
-                      <p className="text-xs text-[var(--text-secondary)]">Placeholder</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)]">
                   <div className="flex items-center">
-                    <div className="w-12 h-12 bg-gradient-secondary rounded-xl flex items-center justify-center mr-4">
+                    <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mr-4">
                       <CheckCircleIcon className="text-white" sx={{ fontSize: 24 }} />
                     </div>
                     <div>
                       <p className="text-sm text-[var(--text-secondary)]">Transactions Cancelled</p>
                       <p className="text-2xl font-bold text-[var(--foreground)]">0</p>
-                      <p className="text-xs text-[var(--text-secondary)]">Placeholder</p>
                     </div>
                   </div>
                 </div>
@@ -269,6 +356,7 @@ export default function Dashboard() {
                   dailyLimit={dailyLimit}
                   onAddExpense={handleAddExpense}
                   onAddIncome={handleAddIncome}
+                  showRecentPurchases={false}
                 />
                 <DefaultGoalCard
                   goal={defaultGoal}
@@ -279,25 +367,23 @@ export default function Dashboard() {
           )}
 
           {activeTab === 'spending' && (
-            <div className="max-w-4xl">
               <SpendingLimit
                 dailySpent={dailySpent}
                 dailyLimit={dailyLimit}
                 onAddExpense={handleAddExpense}
                 onAddIncome={handleAddIncome}
+                recentPurchases={recentPurchases}
+                showRecentPurchases={true}
               />
-            </div>
           )}
 
           {activeTab === 'goals' && (
-            <div className="max-w-4xl">
               <Goals
                 goals={goals}
                 onAddToGoal={handleAddToGoal}
                 onCreateGoal={handleCreateGoal}
                 onSetDefaultGoal={handleSetDefaultGoal}
               />
-            </div>
           )}
 
           {activeTab === 'analytics' && (

@@ -82,9 +82,9 @@ export default function Goals({ goals, onAddToGoal, onCreateGoal, onDeleteGoal, 
         {onCreateGoal && (
           <button
             onClick={() => setShowCreateDialog(true)}
-            className="w-10 h-10 btn-gradient text-white rounded-lg flex items-center justify-center transition-colors text-xl font-bold"
+            className="w-10 h-10 btn-gradient text-white rounded-lg flex items-center justify-center transition-colors"
           >
-            +
+            <Add sx={{ fontSize: 20 }} />  {/* Changed from text-xl and font-bold to icon */}
           </button>
         )}
       </div>
@@ -123,9 +123,6 @@ export default function Goals({ goals, onAddToGoal, onCreateGoal, onDeleteGoal, 
                     </button>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`px-2 py-1 rounded text-xs font-semibold text-white ${progressColor}`}>
-                      {progressPercentage.toFixed(1)}%
-                    </span>
                     {onDeleteGoal && (
                       <button
                         onClick={() => handleDeleteGoal(goal.id)}
