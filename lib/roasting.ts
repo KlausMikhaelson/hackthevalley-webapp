@@ -40,10 +40,9 @@ export async function roast(items: Record<string, string>, amount: string, goals
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
     contents: `I am buying ${list_of_items}. I have a budget of ${amount} left. and I have these goals: ${list_of_goals}. ${action} `,
-    maxOutputTokens: 1000,
-  });
+  } as any);
   
-  return response.text;
+  return response.text || '';
 }
 
 // For placing order
@@ -55,10 +54,9 @@ export async function categorize(items: Record<string, string>) {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Categorize ${key} into one of the following categories: ${categories}. reply in one word. `,
-      maxOutputTokens: 10,
-    });
+    } as any);
 
-    const category = response.text.toLowerCase().replace(/\./g, "").trim();
+    const category = (response.text || '').toLowerCase().replace(/\./g, "").trim();
     if (!cost_for_each_category[category]) {
       cost_for_each_category[category] = [];
     }
