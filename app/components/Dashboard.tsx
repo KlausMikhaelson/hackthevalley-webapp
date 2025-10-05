@@ -611,10 +611,7 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Auth Header */}
-        <div className="bg-[var(--card-bg)] border-b border-[var(--border-color)] px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold text-[var(--foreground)]">Financial Dashboard</h1>
-          </div>
+        <div className="bg-[var(--card-bg)] border-b border-[var(--border-color)] px-6 py-3 flex items-center justify-end">
           <div className="flex items-center gap-3">
           <SignedOut>
               <SignInButton />
@@ -660,30 +657,11 @@ export default function Dashboard() {
         <main className="flex-1 p-6">
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
-              {/* Key Metrics Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)]">
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mr-4">
-                      <SavingsIcon className="text-white" sx={{ fontSize: 24 }} />
-                    </div>
-                    <div>
-                      <p className="text-sm text-[var(--text-secondary)]">Money Saved</p>
-                      <p className="text-2xl font-bold text-[var(--foreground)]">$0.00</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)]">
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mr-4">
-                      <CheckCircleIcon className="text-white" sx={{ fontSize: 24 }} />
-                    </div>
-                    <div>
-                      <p className="text-sm text-[var(--text-secondary)]">Transactions Cancelled</p>
-                      <p className="text-2xl font-bold text-[var(--foreground)]">0</p>
-                    </div>
-                  </div>
+              {/* Money Saved - Large Centered Display */}
+              <div className="text-center pb-4">
+                <h2 className="text-sm font-medium text-[var(--text-secondary)] mb-2">Money Saved</h2>
+                <div className="text-4xl md:text-5xl font-bold text-[var(--accent-primary)]">
+                  $0.00
                 </div>
               </div>
 

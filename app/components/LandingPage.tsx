@@ -29,7 +29,7 @@ export default function LandingPage() {
           {/* Hero Section */}
           <div className="mb-16">
             {/* Brand Logo */}
-            <div className="mb-8">
+            <div className="mb-8 pt-8">
               <h1 className="text-5xl md:text-6xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
                 <span className="text-[var(--foreground)]"> Retail Trauma</span>
               </h1>
@@ -42,7 +42,7 @@ export default function LandingPage() {
             
             <p className="text-xl md:text-2xl text-[var(--text-secondary)] mb-12 max-w-3xl mx-auto leading-relaxed">
               Break free from impulsive spending patterns with AI-powered insights that help you 
-              recognize, understand, and overcome your retail triggers for lasting financial wellness.
+              recognize, understand, and overcome your shopping spree urges.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -52,6 +52,16 @@ export default function LandingPage() {
                   Begin Your Recovery
                 </button>
               </SignInButton>
+              
+              <a 
+                href="https://github.com/KlausMikhaelson/htv-web-extension" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="bg-[var(--card-bg)] hover:bg-[var(--border-color)] text-[var(--foreground)] font-semibold text-lg rounded-xl px-8 py-4 border border-[var(--border-color)] transition-all duration-300 flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <AnalyticsIcon sx={{ fontSize: 20 }} />
+                Download Extension
+              </a>
             </div>
           </div>
 
@@ -104,7 +114,7 @@ export default function LandingPage() {
                   {/* Brokie's Features */}
                   <div className="space-y-8">
                     <div className="group">
-                      <div className="flex items-start gap-4 p-6 bg-[var(--background)] rounded-2xl border border-[var(--border-color)] hover:border-[var(--accent-primary)]/30 transition-all duration-300 hover:transform hover:scale-105">
+                      <div className="flex items-center gap-4 p-6 bg-[var(--background)] rounded-2xl border border-[var(--border-color)] hover:border-[var(--accent-primary)]/30 transition-all duration-300 hover:transform hover:scale-105">
                         <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
                           <FireIcon className="text-white" sx={{ fontSize: 24 }} />
                         </div>
@@ -118,7 +128,7 @@ export default function LandingPage() {
                     </div>
 
                     <div className="group">
-                      <div className="flex items-start gap-4 p-6 bg-[var(--background)] rounded-2xl border border-[var(--border-color)] hover:border-[var(--accent-primary)]/30 transition-all duration-300 hover:transform hover:scale-105">
+                      <div className="flex items-center gap-4 p-6 bg-[var(--background)] rounded-2xl border border-[var(--border-color)] hover:border-[var(--accent-primary)]/30 transition-all duration-300 hover:transform hover:scale-105">
                         <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
                           <PsychologyIcon className="text-white" sx={{ fontSize: 24 }} />
                         </div>
@@ -132,7 +142,7 @@ export default function LandingPage() {
                     </div>
 
                     <div className="group">
-                      <div className="flex items-start gap-4 p-6 bg-[var(--background)] rounded-2xl border border-[var(--border-color)] hover:border-[var(--accent-primary)]/30 transition-all duration-300 hover:transform hover:scale-105">
+                      <div className="flex items-center gap-4 p-6 bg-[var(--background)] rounded-2xl border border-[var(--border-color)] hover:border-[var(--accent-primary)]/30 transition-all duration-300 hover:transform hover:scale-105">
                         <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
                           <SavingsIcon className="text-white" sx={{ fontSize: 24 }} />
                         </div>

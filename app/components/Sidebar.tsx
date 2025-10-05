@@ -33,7 +33,7 @@ export default function Sidebar({ activeTab, onTabChange, isCollapsed, onToggleC
           <>
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-xl font-bold text-[var(--foreground)]">FINANCE DASH</h1>
+                <h1 className="text-xl font-bold text-[var(--foreground)]">RETAIL TRAUMA</h1>
                 <p className="text-xs text-[var(--text-secondary)] mt-1">Personal Finance Tracker</p>
               </div>
               {/* Toggle Button - expanded state */}
