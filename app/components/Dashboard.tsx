@@ -1,14 +1,152 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import SpendingLimit from './SpendingLimit';
-import Goals from './Goals';
+import Goals, { Goal } from './Goals';
+import ThemeSettings from './ThemeSettings';
 import { useDashboard } from '../hooks/useDashboard';
 import Analytics from './Analytics';
+import {
+  AttachMoney as AttachMoneyIcon,
+  TrendingUp as TrendingUpIcon,
+  Savings as SavingsIcon,
+  AccountBalance as AccountBalanceIcon,
+  CheckCircle as CheckCircleIcon,
+  Add,
+  TrackChanges as GoalsIcon
+} from '@mui/icons-material';
+
+// Default Goal Card Component for Dashboard
+function DefaultGoalCard({ goal, onAddToGoal }: { goal: Goal | undefined, onAddToGoal: (goalId: string, amount: number) => void }) {
+  const [addAmount, setAddAmount] = useState('');
+  const [showAddDialog, setShowAddDialog] = useState(false);
+
+  const handleAddToGoal = () => {
+    if (goal && addAmount) {
+      const amount = parseFloat(addAmount);
+      if (amount > 0) {
+        onAddToGoal(goal.id, amount);
+        setAddAmount('');
+        setShowAddDialog(false);
+      }
+    }
+  };
+
+  if (!goal) {
+    return (
+      <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)]">
+        <div className="flex items-center mb-4">
+          <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mr-4">
+            <GoalsIcon className="text-white" sx={{ fontSize: 24 }} />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-[var(--foreground)]">No Primary Goal</h3>
+          </div>
+        </div>
+        <div className="text-center py-4">
+          <p className="text-[var(--text-secondary)] mb-2">Set a goal as primary to see it here</p>
+          <p className="text-sm text-[var(--text-secondary)]">Use the star ⭐ on any goal to make it your primary focus</p>
+        </div>
+      </div>
+    );
+  }
+
+  const progressPercentage = Math.min((goal.savedAmount / goal.targetAmount) * 100, 100);
+  const getProgressColor = (percentage: number): string => {
+    if (percentage >= 100) return 'bg-green-500';
+    if (percentage >= 75) return 'bg-[var(--accent-primary)]';
+    if (percentage >= 50) return 'bg-yellow-500';
+    return 'bg-[var(--accent-secondary)]';
+  };
+
+  return (
+    <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)]">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center">
+          <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mr-4">
+            <GoalsIcon className="text-white" sx={{ fontSize: 24 }} />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-[var(--foreground)]">{goal.name}</h3>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`px-2 py-1 rounded text-xs font-semibold text-white ${getProgressColor(progressPercentage)}`}>
+            {progressPercentage.toFixed(1)}%
+          </span>
+          <button
+            onClick={() => setShowAddDialog(true)}
+            className="w-10 h-10 btn-gradient text-white rounded-lg flex items-center justify-center transition-colors"
+          >
+            <Add sx={{ fontSize: 16 }} />
+          </button>
+        </div>
+      </div>
+      
+      <div className="mb-4">
+        <div className="flex justify-between text-sm mb-2">
+          <span className="text-[var(--text-secondary)]">Progress</span>
+          <span className="text-[var(--foreground)] font-semibold">
+            ${goal.savedAmount.toFixed(2)} / ${goal.targetAmount.toFixed(2)}
+          </span>
+        </div>
+        <div className="w-full bg-[var(--border-color)] rounded-full h-3">
+          <div
+            className={`h-3 rounded-full transition-all duration-300 ${getProgressColor(progressPercentage)}`}
+            style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+          />
+        </div>
+        <div className="mt-2 text-sm text-[var(--text-secondary)]">
+          ${(goal.targetAmount - goal.savedAmount).toFixed(2)} remaining
+        </div>
+      </div>
+
+      {/* Add Money Dialog */}
+      {showAddDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--card-bg)] rounded-xl p-6 max-w-md w-full border border-[var(--border-color)]">
+            <h3 className="text-xl font-bold text-[var(--foreground)] mb-4">Add to {goal?.name}</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Amount to Add</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]">$</span>
+                  <input
+                    type="number"
+                    value={addAmount}
+                    onChange={(e) => setAddAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full pl-7 pr-3 py-2 bg-[var(--background)] border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)] text-[var(--foreground)] placeholder-[var(--text-secondary)]"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowAddDialog(false)}
+                className="flex-1 px-4 py-2 bg-[var(--border-color)] hover:bg-[var(--text-secondary)]/20 text-[var(--foreground)] font-medium rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddToGoal}
+                className="flex-1 px-4 py-2 btn-gradient text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <Add sx={{ fontSize: 16 }} />
+                Add Money
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const {
     dailySpent,
     dailyLimit,
@@ -18,6 +156,7 @@ export default function Dashboard() {
     handleAddIncome,
     handleAddToGoal,
     handleCreateGoal,
+    handleSetDefaultGoal,
     updateDailyLimit,
     resetDailySpending
   } = useDashboard();
@@ -35,20 +174,40 @@ export default function Dashboard() {
 
   const totalSaved = goals.reduce((sum, goal) => sum + goal.savedAmount, 0);
   const totalTarget = goals.reduce((sum, goal) => sum + goal.targetAmount, 0);
+  const totalSpentLast7 = weeklySpending.reduce((sum, d) => sum + d.spent, 0);
+  const defaultGoal = goals.find(goal => goal.isDefault);
+
+  // Load sidebar state from localStorage
+  useEffect(() => {
+    const savedCollapsed = localStorage.getItem('sidebar-collapsed');
+    if (savedCollapsed !== null) {
+      setIsSidebarCollapsed(JSON.parse(savedCollapsed));
+    }
+  }, []);
+
+  // Save sidebar state to localStorage
+  useEffect(() => {
+    localStorage.setItem('sidebar-collapsed', JSON.stringify(isSidebarCollapsed));
+  }, [isSidebarCollapsed]);
 
   return (
-    <div className="min-h-screen bg-[#0f0f23] flex">
+    <div className="min-h-screen bg-[var(--background)] flex">
       {/* Sidebar */}
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      <Sidebar 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+      />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
 
         {/* Settings Panel */}
         {showSettings && (
-          <div className="bg-[#27272a] border-b border-[#3b82f6]/30 px-6 py-4">
+          <div className="bg-[var(--card-bg)] border-b border-[var(--accent-primary)]/30 px-6 py-4">
             <div className="flex items-center gap-4">
-              <label htmlFor="daily-limit" className="text-sm font-medium text-white">
+              <label htmlFor="daily-limit" className="text-sm font-medium text-[var(--foreground)]">
                 Daily Spending Limit:
               </label>
               <div className="flex gap-3">
@@ -57,11 +216,11 @@ export default function Dashboard() {
                   type="number"
                   value={newLimit}
                   onChange={(e) => setNewLimit(e.target.value)}
-                  className="px-3 py-2 bg-[#1a1a2e] border border-[#3b82f6]/30 rounded-lg focus:ring-2 focus:ring-[#3b82f6] focus:border-[#3b82f6] text-white w-32"
+                  className="px-3 py-2 bg-[var(--background)] border border-[var(--accent-primary)]/30 rounded-lg focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)] text-[var(--foreground)] w-32"
                 />
                 <button
                   onClick={handleUpdateLimit}
-                  className="px-4 py-2 bg-[#3b82f6] hover:bg-[#2563eb] text-white text-sm rounded-lg transition-colors"
+                  className="btn-gradient text-white text-sm rounded-lg px-4 py-2"
                 >
                   Update
                 </button>
@@ -75,59 +234,29 @@ export default function Dashboard() {
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
               {/* Key Metrics Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-[#1a1a2e] rounded-xl card-shadow-lg p-6 border border-[#27272a]">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)]">
                   <div className="flex items-center">
-                    <div className="w-12 h-12 bg-[#3b82f6] rounded-xl flex items-center justify-center mr-4">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                      </svg>
+                    <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mr-4">
+                      <SavingsIcon className="text-white" sx={{ fontSize: 24 }} />
                     </div>
                     <div>
-                      <p className="text-sm text-[#a1a1aa]">Today's Spending</p>
-                      <p className="text-2xl font-bold text-white">${dailySpent.toFixed(2)}</p>
+                      <p className="text-sm text-[var(--text-secondary)]">Money Saved</p>
+                      <p className="text-2xl font-bold text-[var(--foreground)]">$0.00</p>
+                      <p className="text-xs text-[var(--text-secondary)]">Placeholder</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-[#1a1a2e] rounded-xl card-shadow-lg p-6 border border-[#27272a]">
+                <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)]">
                   <div className="flex items-center">
-                    <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mr-4">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                    <div className="w-12 h-12 bg-gradient-secondary rounded-xl flex items-center justify-center mr-4">
+                      <CheckCircleIcon className="text-white" sx={{ fontSize: 24 }} />
                     </div>
                     <div>
-                      <p className="text-sm text-[#a1a1aa]">Active Goals</p>
-                      <p className="text-2xl font-bold text-white">{goals.length}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-[#1a1a2e] rounded-xl card-shadow-lg p-6 border border-[#27272a]">
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 bg-[#8b5cf6] rounded-xl flex items-center justify-center mr-4">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-sm text-[#a1a1aa]">Total Saved</p>
-                      <p className="text-2xl font-bold text-white">${totalSaved.toFixed(2)}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-[#1a1a2e] rounded-xl card-shadow-lg p-6 border border-[#27272a]">
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mr-4">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-sm text-[#a1a1aa]">Active Goals</p>
-                      <p className="text-2xl font-bold text-white">{goals.length}</p>
+                      <p className="text-sm text-[var(--text-secondary)]">Transactions Cancelled</p>
+                      <p className="text-2xl font-bold text-[var(--foreground)]">0</p>
+                      <p className="text-xs text-[var(--text-secondary)]">Placeholder</p>
                     </div>
                   </div>
                 </div>
@@ -141,10 +270,9 @@ export default function Dashboard() {
                   onAddExpense={handleAddExpense}
                   onAddIncome={handleAddIncome}
                 />
-                <Goals
-                  goals={goals}
+                <DefaultGoalCard
+                  goal={defaultGoal}
                   onAddToGoal={handleAddToGoal}
-                  onCreateGoal={handleCreateGoal}
                 />
               </div>
             </div>
@@ -167,22 +295,25 @@ export default function Dashboard() {
                 goals={goals}
                 onAddToGoal={handleAddToGoal}
                 onCreateGoal={handleCreateGoal}
+                onSetDefaultGoal={handleSetDefaultGoal}
               />
             </div>
           )}
 
           {activeTab === 'analytics' && (
-            <div className="space-y-6 max-w-5xl">
-              <Analytics weeklySpending={weeklySpending} dailyLimit={dailyLimit} goals={goals} />
+            <div className="space-y-6 max-w-6xl">
+              <Analytics 
+                weeklySpending={weeklySpending} 
+                dailyLimit={dailyLimit} 
+                totalSaved={totalSaved}
+                totalSpent={totalSpentLast7}
+              />
             </div>
           )}
 
           {activeTab === 'settings' && (
             <div className="space-y-6">
-              <div className="bg-[#1a1a2e] rounded-xl card-shadow-lg p-6 border border-[#27272a]">
-                <h2 className="text-xl font-bold text-white mb-4">Settings</h2>
-                <p className="text-[#a1a1aa]">Configure your preferences and account settings.</p>
-              </div>
+              <ThemeSettings />
             </div>
           )}
         </main>
