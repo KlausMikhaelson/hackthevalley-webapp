@@ -22,18 +22,45 @@ import { categorizePurchase } from '@/lib/categorization';
  */
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate user with Clerk
-    const { userId } = await auth();
-    
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Please sign in' },
-        { status: 401 }
-      );
-    }
-
-    // Parse request body
+    // Parse request body first
     const body = await request.json();
+    
+    // Check for API key (for browser extension) or Clerk auth (for web app)
+    const apiKey = request.headers.get('x-api-key');
+    let userId: string | null = null;
+    
+    if (apiKey) {
+      // Validate API key
+      const validApiKey = process.env.EXTENSION_API_KEY;
+      
+      if (apiKey !== validApiKey) {
+        return NextResponse.json(
+          { error: 'Invalid API key' },
+          { status: 401 }
+        );
+      }
+      
+      // Get user ID from request body when using API key
+      userId = body.user_id;
+      
+      if (!userId) {
+        return NextResponse.json(
+          { error: 'user_id required when using API key' },
+          { status: 400 }
+        );
+      }
+    } else {
+      // Use Clerk authentication for web app
+      const auth_result = await auth();
+      userId = auth_result.userId;
+      
+      if (!userId) {
+        return NextResponse.json(
+          { error: 'Unauthorized - Please sign in or provide API key' },
+          { status: 401 }
+        );
+      }
+    }
     const {
       item_name,
       price,

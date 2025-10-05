@@ -59,7 +59,7 @@ describe('Purchase API Endpoints', () => {
       POST = module.POST;
     });
 
-    it('should add a purchase successfully', async () => {
+    it('should add a purchase successfully with Clerk auth', async () => {
       mockAuth.mockResolvedValue({ userId: 'user_123' });
       mockCategorizePurchase.mockResolvedValue('fashion');
       mockCreate.mockResolvedValue({
@@ -95,6 +95,93 @@ describe('Purchase API Endpoints', () => {
       expect(data.purchase.item_name).toBe('Nike Shoes');
       expect(data.purchase.category).toBe('fashion');
       expect(mockCategorizePurchase).toHaveBeenCalledWith('Nike Shoes', 'Running shoes');
+    });
+
+    it('should add a purchase successfully with API key', async () => {
+      process.env.EXTENSION_API_KEY = 'test_api_key_123';
+      mockCategorizePurchase.mockResolvedValue('food');
+      mockCreate.mockResolvedValue({
+        _id: 'purchase_456',
+        user_id: 'user_456',
+        item_name: 'Pizza',
+        price: 15.99,
+        currency: 'USD',
+        category: 'food',
+        website: 'pizzahut.com',
+        purchase_date: new Date('2025-10-05'),
+        createdAt: new Date('2025-10-05')
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/purchases/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': 'test_api_key_123'
+        },
+        body: JSON.stringify({
+          user_id: 'user_456',
+          item_name: 'Pizza',
+          price: 15.99,
+          website: 'pizzahut.com'
+        })
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(data.success).toBe(true);
+      expect(data.purchase.item_name).toBe('Pizza');
+      expect(data.purchase.category).toBe('food');
+      expect(mockAuth).not.toHaveBeenCalled();
+    });
+
+    it('should reject invalid API key', async () => {
+      process.env.EXTENSION_API_KEY = 'correct_key';
+
+      const request = new NextRequest('http://localhost:3000/api/purchases/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': 'wrong_key'
+        },
+        body: JSON.stringify({
+          user_id: 'user_456',
+          item_name: 'Test',
+          price: 10,
+          website: 'test.com'
+        })
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(401);
+      expect(data.error).toContain('Invalid API key');
+    });
+
+    it('should require user_id when using API key', async () => {
+      process.env.EXTENSION_API_KEY = 'test_api_key_123';
+
+      const request = new NextRequest('http://localhost:3000/api/purchases/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': 'test_api_key_123'
+        },
+        body: JSON.stringify({
+          item_name: 'Test',
+          price: 10,
+          website: 'test.com'
+          // Missing user_id
+        })
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toContain('user_id required');
     });
 
     it('should return 401 if user is not authenticated', async () => {
