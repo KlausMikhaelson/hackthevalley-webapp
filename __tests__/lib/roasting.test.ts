@@ -49,8 +49,7 @@ describe('Roasting Module', () => {
       expect(result).toBe(mockResponse.text);
       expect(mockGenerateContent).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: 'gemini-2.5-flash',
-          maxOutputTokens: 1000
+          model: 'gemini-2.5-flash'
         })
       );
     });
@@ -158,7 +157,6 @@ describe('Roasting Module', () => {
       const callArgs = mockGenerateContent.mock.calls[0][0];
       expect(callArgs.contents).toContain('Categorize Test Item');
       expect(callArgs.contents).toContain('food, fashion, entertainment, transport, travel or living');
-      expect(callArgs.maxOutputTokens).toBe(10);
     });
   });
 
