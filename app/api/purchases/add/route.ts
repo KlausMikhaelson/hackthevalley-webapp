@@ -25,41 +25,14 @@ export async function POST(request: NextRequest) {
     // Parse request body first
     const body = await request.json();
     
-    // Check for API key (for browser extension) or Clerk auth (for web app)
-    const apiKey = request.headers.get('x-api-key');
-    let userId: string | null = null;
+    // Get user_id from body (required for all requests now)
+    const userId = body.user_id || body.userEmail; // Support both user_id and userEmail
     
-    if (apiKey) {
-      // Validate API key
-      const validApiKey = process.env.EXTENSION_API_KEY;
-      
-      if (apiKey !== validApiKey) {
-        return NextResponse.json(
-          { error: 'Invalid API key' },
-          { status: 401 }
-        );
-      }
-      
-      // Get user ID from request body when using API key
-      userId = body.user_id;
-      
-      if (!userId) {
-        return NextResponse.json(
-          { error: 'user_id required when using API key' },
-          { status: 400 }
-        );
-      }
-    } else {
-      // Use Clerk authentication for web app
-      const auth_result = await auth();
-      userId = auth_result.userId;
-      
-      if (!userId) {
-        return NextResponse.json(
-          { error: 'Unauthorized - Please sign in or provide API key' },
-          { status: 401 }
-        );
-      }
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'user_id or userEmail is required' },
+        { status: 400 }
+      );
     }
     const {
       item_name,

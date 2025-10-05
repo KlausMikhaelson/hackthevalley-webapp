@@ -17,18 +17,17 @@ import Purchase from '@/models/Purchase';
  */
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate user with Clerk
-    const { userId } = await auth();
+    // Parse query parameters
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('user_id') || searchParams.get('userEmail');
     
     if (!userId) {
       return NextResponse.json(
-        { error: 'Unauthorized - Please sign in' },
-        { status: 401 }
+        { error: 'user_id or userEmail query parameter is required' },
+        { status: 400 }
       );
     }
 
-    // Parse query parameters
-    const { searchParams } = new URL(request.url);
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
     const offset = parseInt(searchParams.get('offset') || '0');
     const category = searchParams.get('category');
