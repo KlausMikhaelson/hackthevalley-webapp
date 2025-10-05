@@ -13,8 +13,12 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
     "@google-cloud/storage": "^7.17.1",
     "@google/genai": "^1.22.0",
+    "@mui/icons-material": "^5.14.19",
+    "@mui/material": "^5.14.20",
     "dotenv": "^17.2.3",
     "next": "15.5.4",
     "react": "19.1.0",
