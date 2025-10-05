@@ -10,6 +10,8 @@ export interface WeeklyPoint {
 interface AnalyticsProps {
   weeklySpending: WeeklyPoint[]; // last up to 7 days ascending
   dailyLimit: number;
+  totalSaved: number; // aggregate of all goal savedAmounts
+  totalSpent: number; // aggregate spending (e.g., weekly sum)
 }
 
 // Helper to format date label (e.g., Mon, Tue)
@@ -18,9 +20,9 @@ function shortWeekday(dateStr: string) {
   return d.toLocaleDateString(undefined, { weekday: 'short' });
 }
 
-export default function Analytics({ weeklySpending, dailyLimit }: AnalyticsProps) {
+export default function Analytics({ weeklySpending, dailyLimit, totalSaved, totalSpent }: AnalyticsProps) {
   // Prepare chart dimensions
-  const width = 600;
+  const width = 460;
   const height = 220;
   const paddingX = 32;
   const paddingY = 24;
@@ -78,8 +80,10 @@ export default function Analytics({ weeklySpending, dailyLimit }: AnalyticsProps
   });
 
   return (
-    <div className="bg-[#1a1a2e] rounded-xl card-shadow-lg p-6 border border-[#27272a] space-y-10">
-      <div>
+  <div className="flex flex-col md:flex-row flex-wrap gap-8 items-start">
+      {/* Left column: Weekly chart + metric cards */}
+      <div className="flex flex-col gap-6 w-full max-w-lg">
+      <div className="bg-[#1a1a2e] rounded-xl card-shadow-lg p-6 border border-[#27272a] w-full">
         <h2 className="text-xl font-bold text-white mb-4">Weekly Spending</h2>
       {points.length < 2 ? (
         <p className="text-[#a1a1aa] text-sm">Not enough data yet. Add some expenses across days to see the line graph.</p>
@@ -160,9 +164,23 @@ export default function Analytics({ weeklySpending, dailyLimit }: AnalyticsProps
           <div className="flex items-center gap-2"><span className="inline-block w-3 h-3 rounded-full bg-[#3b82f6]"></span>Daily Limit ({dailyLimit})</div>
         </div>
       </div>
+      {/* Metric small cards */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-[#1a1a2e] rounded-xl card-shadow-lg p-4 border border-[#27272a] flex flex-col justify-between">
+          <p className="text-xs uppercase tracking-wide text-[#6e6e78] font-semibold mb-1">Total Savings</p>
+          <p className="text-2xl font-bold text-white mb-1">${totalSaved.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</p>
+          <p className="text-[10px] text-[#a1a1aa]">Across all goals</p>
+        </div>
+        <div className="bg-[#1a1a2e] rounded-xl card-shadow-lg p-4 border border-[#27272a] flex flex-col justify-between">
+          <p className="text-xs uppercase tracking-wide text-[#6e6e78] font-semibold mb-1">Total Spending</p>
+          <p className="text-2xl font-bold text-white mb-1">${totalSpent.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</p>
+          <p className="text-[10px] text-[#a1a1aa]">Sum of last 7 days</p>
+        </div>
+      </div>
+      </div>
 
-      {/* Spending Categories Pie (Sample Data) */}
-      <div>
+  {/* Spending Categories Pie (Sample Data) */}
+  <div className="bg-[#1a1a2e] rounded-xl card-shadow-lg p-6 border border-[#27272a] w-full max-w-sm">
         <h2 className="text-xl font-bold text-white mb-4">Spending by Category (Sample)</h2>
         <div className="flex flex-wrap gap-8 items-center">
           <svg width={pieSize} height={pieSize} viewBox={`0 0 ${pieSize} ${pieSize}`}>      
