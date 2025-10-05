@@ -45,10 +45,22 @@ jest.mock('@/lib/categorization', () => ({
   categorizePurchase: mockCategorizePurchase
 }));
 
+// Mock Goal model
+const mockGoalFindOne = jest.fn();
+const mockGoalSave = jest.fn();
+jest.mock('@/models/Goal', () => ({
+  __esModule: true,
+  default: {
+    findOne: mockGoalFindOne
+  }
+}));
+
 describe('Purchase API Endpoints', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockConnect.mockResolvedValue(true);
+    // Mock goal finding to return null by default (no daily spending goal)
+    mockGoalFindOne.mockResolvedValue(null);
   });
 
   describe('POST /api/purchases/add', () => {
@@ -269,6 +281,53 @@ describe('Purchase API Endpoints', () => {
 
       expect(response.status).toBe(201);
       expect(data.purchase.currency).toBe('USD');
+    });
+
+    it('should update daily spending goal when purchase is made today', async () => {
+      mockAuth.mockResolvedValue({ userId: 'user_123' });
+      mockCategorizePurchase.mockResolvedValue('food');
+      
+      const mockGoal = {
+        _id: 'goal_123',
+        user_id: 'user_123',
+        type: 'daily_spending',
+        current_amount: 50,
+        save: jest.fn().mockResolvedValue(true)
+      };
+      mockGoalFindOne.mockResolvedValue(mockGoal);
+      
+      mockCreate.mockResolvedValue({
+        _id: 'purchase_123',
+        user_id: 'user_123',
+        item_name: 'Pizza',
+        price: 15.99,
+        currency: 'USD',
+        category: 'food',
+        website: 'pizzahut.com',
+        purchase_date: new Date(),
+        createdAt: new Date()
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/purchases/add', {
+        method: 'POST',
+        body: JSON.stringify({
+          item_name: 'Pizza',
+          price: 15.99,
+          website: 'pizzahut.com'
+        })
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(mockGoalFindOne).toHaveBeenCalledWith({
+        user_id: 'user_123',
+        type: 'daily_spending',
+        is_default: true
+      });
+      expect(mockGoal.current_amount).toBe(65.99); // 50 + 15.99
+      expect(mockGoal.save).toHaveBeenCalled();
     });
   });
 
