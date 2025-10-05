@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import connectDB from '@/lib/mongodb';
 import Purchase from '@/models/Purchase';
+import Goal from '@/models/Goal';
 import { categorizePurchase } from '@/lib/categorization';
 
 /**
@@ -79,6 +80,27 @@ export async function POST(request: NextRequest) {
       purchase_date: purchase_date ? new Date(purchase_date) : new Date(),
       metadata,
     });
+
+    // Update daily spending goal's current_amount if purchase is today
+    const purchaseDate = purchase_date ? new Date(purchase_date) : new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const purchaseDateStart = new Date(purchaseDate);
+    purchaseDateStart.setHours(0, 0, 0, 0);
+
+    if (purchaseDateStart.getTime() === today.getTime()) {
+      // Update the daily spending goal
+      const dailyGoal = await Goal.findOne({
+        user_id: userId,
+        type: 'daily_spending',
+        is_default: true
+      });
+
+      if (dailyGoal) {
+        dailyGoal.current_amount += price;
+        await dailyGoal.save();
+      }
+    }
 
     return NextResponse.json({
       success: true,

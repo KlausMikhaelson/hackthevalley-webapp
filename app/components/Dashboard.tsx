@@ -556,12 +556,7 @@ export default function Dashboard() {
           )}
 
           {activeTab === 'goals' && (
-              <Goals
-                goals={goals}
-                onAddToGoal={handleAddToGoal}
-                onCreateGoal={handleCreateGoal}
-                onSetDefaultGoal={handleSetDefaultGoal}
-              />
+              <Goals />
           )}
 
           {activeTab === 'analytics' && (
