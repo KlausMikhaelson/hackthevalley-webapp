@@ -117,7 +117,7 @@ interface CustomThemeProviderProps {
 
 export function CustomThemeProvider({ children }: CustomThemeProviderProps) {
   const [theme, setTheme] = useState<CustomTheme>({
-    mode: 'dark',
+    mode: 'light',
     colorScheme: 'blue'
   });
 
