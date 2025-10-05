@@ -34,8 +34,7 @@ export async function roast(items: Record<string, string>, amount: string, goals
   }
 
   for (const key in goals) {
-      list_of_goals.push(`${goals[key][0]} out of ${goals[key][1]} for ${key} by ${goals[key[2]]}`);
-
+      list_of_goals.push(`${goals[key][0]} for ${key} by ${goals[key][1]}`);
   }
 
   const response = await ai.models.generateContent({

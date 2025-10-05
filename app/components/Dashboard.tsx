@@ -16,6 +16,15 @@ import {
   Add,
   TrackChanges as GoalsIcon
 } from '@mui/icons-material';
+import { useUser } from '@auth0/nextjs-auth0';
+import {
+  ClerkProvider,
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from '@clerk/nextjs'
 
 // Weekly Chart Component
 function WeeklyChart({ weeklySpending, dailyLimit }: { weeklySpending: any[], dailyLimit: number }) {
@@ -378,6 +387,8 @@ export default function Dashboard() {
     }
   };
 
+  const { user, error, isLoading } = useUser();
+
   const totalSaved = goals.reduce((sum, goal) => sum + goal.savedAmount, 0);
   const totalTarget = goals.reduce((sum, goal) => sum + goal.targetAmount, 0);
   const totalSpentLast7 = weeklySpending.reduce((sum, d) => sum + d.spent, 0);
@@ -408,6 +419,25 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
+        {/* Auth Header */}
+        <div className="bg-[var(--card-bg)] border-b border-[var(--border-color)] px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-bold text-[var(--foreground)]">Financial Dashboard</h1>
+          </div>
+          <div className="flex items-center gap-3">
+          <SignedOut>
+              <SignInButton />
+              <SignUpButton>
+                <button className="bg-[#6c47ff] text-ceramic-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer">
+                  Sign Up
+                </button>
+              </SignUpButton>
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
+          </div>
+        </div>
 
         {/* Settings Panel */}
         {showSettings && (
