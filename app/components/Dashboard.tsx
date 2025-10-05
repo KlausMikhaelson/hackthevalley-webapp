@@ -659,7 +659,7 @@ export default function Dashboard() {
             <div className="space-y-6">
               {/* Money Saved - Large Centered Display */}
               <div className="text-center pb-4">
-                <h2 className="text-sm font-medium text-[var(--text-secondary)] mb-2">Money Saved</h2>
+                <h2 className="text-sm font-medium text-[var(--text-secondary)] mb-2">Money Saved with Brokie</h2>
                 <div className="text-4xl md:text-5xl font-bold text-[var(--accent-primary)]">
                   $0.00
                 </div>
