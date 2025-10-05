@@ -109,7 +109,7 @@ const getDesignTokens = (mode: PaletteMode) => ({
 
 export function AppThemeProvider({ children }: { children: ReactNode }) {
 	const [mode, setMode] = useState<PaletteMode>('dark');
-	const toggleMode = () => setMode((m) => (m === 'dark' ? 'light' : 'dark'));
+	const toggleMode = () => setMode((m: PaletteMode) => (m === 'dark' ? 'light' : 'dark'));
 
 	const theme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
 

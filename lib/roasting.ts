@@ -25,7 +25,7 @@ const ai = new GoogleGenAI({
 
 // In cart
 export async function roast(items: Record<string, string>, amount: string, goals: Record<string, [string, string]>) {
-  const action = "if it is responsible or within budget, please say approved. if it is irresponsible, please roast me and stop me from buying it in 5 lines.";
+  const action = "if it is responsible or within budget, please say so in 3 lines. if it is irresponsible, please roast me and stop me from buying it in 5 lines.";
   const list_of_items: string[] = [];
   const list_of_goals: string[] = [];
   
@@ -34,16 +34,16 @@ export async function roast(items: Record<string, string>, amount: string, goals
   }
 
   for (const key in goals) {
-    list_of_goals.push(`${goals[key][0]} for ${key} by ${goals[key][1]}`);
+      list_of_goals.push(`${goals[key][0]} out of ${goals[key][1]} for ${key} by ${goals[key[2]]}`);
+
   }
 
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
-    contents: `I am buying ${list_of_items}. I have a budget of ${amount} left. and I have these goals: ${list_of_goals}. ${action} `,
-    maxOutputTokens: 1000,
-  });
+    contents: `You are my financial manager. I am buying ${list_of_items}. and I have these goals: ${list_of_goals}. I have a budget of ${amount}.  ${action} `,
+  } as any);
   
-  return response.text;
+  return response.text || '';
 }
 
 // For placing order
@@ -55,10 +55,9 @@ export async function categorize(items: Record<string, string>) {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Categorize ${key} into one of the following categories: ${categories}. reply in one word. `,
-      maxOutputTokens: 10,
-    });
+    } as any);
 
-    const category = response.text.toLowerCase().replace(/\./g, "").trim();
+    const category = (response.text || '').toLowerCase().replace(/\./g, "").trim();
     if (!cost_for_each_category[category]) {
       cost_for_each_category[category] = [];
     }
@@ -67,3 +66,5 @@ export async function categorize(items: Record<string, string>) {
   
   return cost_for_each_category;
 }
+
+//add each amount to each category

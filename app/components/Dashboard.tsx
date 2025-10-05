@@ -6,6 +6,7 @@ import SpendingLimit from './SpendingLimit';
 import Goals, { Goal } from './Goals';
 import ThemeSettings from './ThemeSettings';
 import { useDashboard } from '../hooks/useDashboard';
+import Analytics from './Analytics';
 import {
   AttachMoney as AttachMoneyIcon,
   TrendingUp as TrendingUpIcon,
@@ -24,6 +25,122 @@ import {
   SignedOut,
   UserButton,
 } from '@clerk/nextjs'
+
+// Weekly Chart Component
+function WeeklyChart({ weeklySpending, dailyLimit }: { weeklySpending: any[], dailyLimit: number }) {
+  const width = 460;
+  const height = 220;
+  const paddingX = 32;
+  const paddingY = 24;
+  
+  const sorted = [...weeklySpending].sort((a,b) => a.date.localeCompare(b.date));
+  const lastDateStr = sorted.length ? sorted[sorted.length - 1].date : new Date().toISOString().slice(0,10);
+  const lastDate = new Date(lastDateStr + 'T00:00:00');
+  const byDate = new Map(sorted.map(d => [d.date, d.spent]));
+  const data = Array.from({ length: 7 }).map((_, idx) => {
+    const d = new Date(lastDate);
+    d.setDate(lastDate.getDate() - (6 - idx));
+    const ds = d.toISOString().slice(0,10);
+    return { date: ds, spent: byDate.get(ds) ?? 0 };
+  });
+  const maxSpent = Math.max(dailyLimit, ...data.map(d => d.spent), 10);
+
+  const points = data.map((d, i) => {
+    const x = paddingX + (i / Math.max(1, data.length - 1)) * (width - paddingX * 2);
+    const y = height - paddingY - (d.spent / maxSpent) * (height - paddingY * 2);
+    const dateObj = new Date(d.date + 'T00:00:00');
+    return { x, y, label: dateObj.toLocaleDateString(undefined, { weekday: 'short' }), value: d.spent, date: d.date };
+  });
+
+  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+
+  return (
+    <div className="w-full">
+      {points.length < 2 ? (
+        <p className="text-[var(--text-secondary)] text-sm">Not enough data yet. Add some expenses across days to see the line graph.</p>
+      ) : (
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto max-w-full max-h-[300px] mx-auto">
+          <defs>
+            <linearGradient id="gradient" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="var(--accent-primary)" stopOpacity={0.6} />
+              <stop offset="100%" stopColor="var(--accent-primary)" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <path d={linePath} fill="none" stroke="var(--accent-primary)" strokeWidth={2} />
+          <path
+            d={`${linePath} L${points[points.length - 1].x},${height - paddingY} L${points[0].x},${height - paddingY} Z`}
+            fill="url(#gradient)"
+            opacity={0.25}
+          />
+          {points.map(p => (
+            <g key={p.date}>
+              <circle cx={p.x} cy={p.y} r={4} fill="var(--accent-primary)" stroke="var(--card-bg)" strokeWidth={2} />
+              <text x={p.x} y={height - paddingY + 14} textAnchor="middle" className="fill-[var(--text-secondary)] text-[10px]">
+                {p.label}
+              </text>
+            </g>
+          ))}
+        </svg>
+      )}
+    </div>
+  );
+}
+
+// Categories Chart Component  
+function CategoriesChart() {
+  const categoryPalette = ['var(--accent-primary)','#10b981','#f59e0b','#8b5cf6','#ec4899','#06b6d4'];
+  const sampleCategories = [
+    { name: 'Food', amount: 120 },
+    { name: 'Transport', amount: 45 },
+    { name: 'Entertainment', amount: 60 },
+    { name: 'Utilities', amount: 80 },
+    { name: 'Shopping', amount: 95 },
+    { name: 'Other', amount: 30 }
+  ];
+  const catTotal = sampleCategories.reduce((s,c) => s + c.amount, 0) || 1;
+  const pieSize = 200;
+  const r = pieSize / 2 - 8;
+  
+  let acc = 0;
+  const categorySlices = sampleCategories.map((c, idx) => {
+    const ang = (c.amount / catTotal) * Math.PI * 2;
+    const start = acc;
+    const end = acc + ang;
+    acc = end;
+    const largeArc = ang > Math.PI ? 1 : 0;
+    const x1 = r + r * Math.sin(start);
+    const y1 = r - r * Math.cos(start);
+    const x2 = r + r * Math.sin(end);
+    const y2 = r - r * Math.cos(end);
+    const path = `M ${r} ${r} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+    const percent = (c.amount / catTotal) * 100;
+    return { c, path, percent, color: categoryPalette[idx % categoryPalette.length] };
+  });
+
+  return (
+    <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
+      <svg width={pieSize} height={pieSize} viewBox={`0 0 ${pieSize} ${pieSize}`}>      
+        {categorySlices.map(s => (
+          <path key={s.c.name} d={s.path} fill={s.color} stroke="var(--card-bg)" strokeWidth={2} />
+        ))}
+        <circle cx={r} cy={r} r={r * 0.45} fill="var(--card-bg)" stroke="var(--border-color)" strokeWidth={1} />
+        <text x={r} y={r - 4} textAnchor="middle" className="fill-[var(--foreground)] text-sm font-semibold">Total</text>
+        <text x={r} y={r + 14} textAnchor="middle" className="fill-[var(--text-secondary)] text-xs">${catTotal}</text>
+      </svg>
+      <div className="space-y-2 max-w-xs">
+        {categorySlices.map(s => (
+          <div key={s.c.name} className="flex items-center justify-between text-xs bg-[var(--background)] px-3 py-2 rounded-lg border border-[var(--border-color)]">
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-3 h-3 rounded-sm" style={{ background: s.color }} />
+              <span className="text-[var(--foreground)] font-medium">{s.c.name}</span>
+            </div>
+            <div className="text-[var(--text-secondary)]">${s.c.amount} ({s.percent.toFixed(1)}%)</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 // Default Goal Card Component for Dashboard
 function DefaultGoalCard({ goal, onAddToGoal }: { goal: Goal | undefined, onAddToGoal: (goalId: string, amount: number) => void }) {
@@ -69,7 +186,7 @@ function DefaultGoalCard({ goal, onAddToGoal }: { goal: Goal | undefined, onAddT
   };
 
   return (
-    <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)]">
+    <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)] flex-shrink-0">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
           <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mr-4">
@@ -80,9 +197,6 @@ function DefaultGoalCard({ goal, onAddToGoal }: { goal: Goal | undefined, onAddT
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`px-2 py-1 rounded text-xs font-semibold text-white ${getProgressColor(progressPercentage)}`}>
-            {progressPercentage.toFixed(1)}%
-          </span>
           <button
             onClick={() => setShowAddDialog(true)}
             className="w-10 h-10 btn-gradient text-white rounded-lg flex items-center justify-center transition-colors"
@@ -93,20 +207,24 @@ function DefaultGoalCard({ goal, onAddToGoal }: { goal: Goal | undefined, onAddT
       </div>
       
       <div className="mb-4">
-        <div className="flex justify-between text-sm mb-2">
-          <span className="text-[var(--text-secondary)]">Progress</span>
-          <span className="text-[var(--foreground)] font-semibold">
-            ${goal.savedAmount.toFixed(2)} / ${goal.targetAmount.toFixed(2)}
-          </span>
+        <div className="flex justify-between mb-3">
+          <div>
+            <div className="flex items-end gap-2">
+              <div className="text-2xl font-bold text-[var(--foreground)]">${goal.savedAmount.toFixed(2)}</div>
+              <div className="text-sm text-[#a1a1aa]">out of ${goal.targetAmount.toFixed(2)}</div>
+            </div>
+          </div>
         </div>
-        <div className="w-full bg-[var(--border-color)] rounded-full h-3">
+        <div className="w-full bg-[var(--border-color)] rounded-full h-6 relative">
           <div
-            className={`h-3 rounded-full transition-all duration-300 ${getProgressColor(progressPercentage)}`}
+            className={`h-6 rounded-full transition-all duration-300 ${getProgressColor(progressPercentage)}`}
             style={{ width: `${Math.min(progressPercentage, 100)}%` }}
           />
-        </div>
-        <div className="mt-2 text-sm text-[var(--text-secondary)]">
-          ${(goal.targetAmount - goal.savedAmount).toFixed(2)} remaining
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-xs font-semibold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+              {progressPercentage.toFixed(1)}%
+            </span>
+          </div>
         </div>
       </div>
 
@@ -155,9 +273,11 @@ function DefaultGoalCard({ goal, onAddToGoal }: { goal: Goal | undefined, onAddT
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [selectedChart, setSelectedChart] = useState<'weekly' | 'categories' | 'none'>('none');
   const {
     dailySpent,
     dailyLimit,
+    weeklySpending,
     goals,
     handleAddExpense,
     handleAddIncome,
@@ -171,6 +291,94 @@ export default function Dashboard() {
   const [showSettings, setShowSettings] = useState(false);
   const [newLimit, setNewLimit] = useState(dailyLimit.toString());
 
+  // Sample recent purchases data
+  const recentPurchases = [
+    {
+      id: '1',
+      amount: 45.99,
+      category: 'Shopping',
+      website: 'Amazon',
+      date: new Date('2025-10-04')
+    },
+    {
+      id: '2',
+      amount: 12.50,
+      category: 'Food & Dining',
+      website: 'Starbucks',
+      date: new Date('2025-10-04')
+    },
+    {
+      id: '3',
+      amount: 89.99,
+      category: 'Electronics',
+      website: 'Best Buy',
+      date: new Date('2025-10-03')
+    },
+    {
+      id: '4',
+      amount: 23.45,
+      category: 'Groceries',
+      website: 'Walmart',
+      date: new Date('2025-10-03')
+    },
+    {
+      id: '5',
+      amount: 15.99,
+      category: 'Entertainment',
+      website: 'Netflix',
+      date: new Date('2025-10-02')
+    },
+    {
+      id: '6',
+      amount: 34.99,
+      category: 'Transportation',
+      website: 'Uber',
+      date: new Date('2025-10-02')
+    },
+    {
+      id: '7',
+      amount: 67.89,
+      category: 'Clothing',
+      website: 'H&M',
+      date: new Date('2025-10-01')
+    },
+    {
+      id: '8',
+      amount: 19.99,
+      category: 'Books',
+      website: 'Barnes & Noble',
+      date: new Date('2025-10-01')
+    },
+    {
+      id: '9',
+      amount: 8.50,
+      category: 'Food & Dining',
+      website: 'McDonald\'s',
+      date: new Date('2025-09-30')
+    },
+    {
+      id: '10',
+      amount: 120.00,
+      category: 'Health & Fitness',
+      website: 'Planet Fitness',
+      date: new Date('2025-09-30')
+    },
+    {
+      id: '11',
+      amount: 56.78,
+      category: 'Gas',
+      website: 'Shell',
+      date: new Date('2025-09-29')
+    },
+    {
+      id: '12',
+      amount: 29.99,
+      category: 'Software',
+      website: 'Adobe',
+      date: new Date('2025-09-29')
+    }
+  ];
+
   const handleUpdateLimit = () => {
     const limit = parseFloat(newLimit);
     if (limit > 0) {
@@ -183,6 +391,7 @@ export default function Dashboard() {
 
   const totalSaved = goals.reduce((sum, goal) => sum + goal.savedAmount, 0);
   const totalTarget = goals.reduce((sum, goal) => sum + goal.targetAmount, 0);
+  const totalSpentLast7 = weeklySpending.reduce((sum, d) => sum + d.spent, 0);
   const defaultGoal = goals.find(goal => goal.isDefault);
 
   // Load sidebar state from localStorage
@@ -270,20 +479,18 @@ export default function Dashboard() {
                     <div>
                       <p className="text-sm text-[var(--text-secondary)]">Money Saved</p>
                       <p className="text-2xl font-bold text-[var(--foreground)]">$0.00</p>
-                      <p className="text-xs text-[var(--text-secondary)]">Placeholder</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)]">
                   <div className="flex items-center">
-                    <div className="w-12 h-12 bg-gradient-secondary rounded-xl flex items-center justify-center mr-4">
+                    <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mr-4">
                       <CheckCircleIcon className="text-white" sx={{ fontSize: 24 }} />
                     </div>
                     <div>
                       <p className="text-sm text-[var(--text-secondary)]">Transactions Cancelled</p>
                       <p className="text-2xl font-bold text-[var(--foreground)]">0</p>
-                      <p className="text-xs text-[var(--text-secondary)]">Placeholder</p>
                     </div>
                   </div>
                 </div>
@@ -296,43 +503,75 @@ export default function Dashboard() {
                   dailyLimit={dailyLimit}
                   onAddExpense={handleAddExpense}
                   onAddIncome={handleAddIncome}
+                  showRecentPurchases={false}
                 />
                 <DefaultGoalCard
                   goal={defaultGoal}
                   onAddToGoal={handleAddToGoal}
                 />
               </div>
+
+              {/* Analytics Chart Section */}
+              <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)]">
+                <div className="flex justify-between items-center mb-4">
+                  <select
+                    value={selectedChart}
+                    onChange={(e) => setSelectedChart(e.target.value as 'weekly' | 'categories' | 'none')}
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md 
+                             bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
+                             focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="none">Select Chart</option>
+                    <option value="weekly">Weekly Spending</option>
+                    <option value="categories">Category Breakdown</option>
+                  </select>
+                </div>
+                
+                <div className="h-64">
+                  {selectedChart === 'weekly' && (
+                    <WeeklyChart weeklySpending={weeklySpending} dailyLimit={dailyLimit} />
+                  )}
+                  {selectedChart === 'categories' && (
+                    <CategoriesChart />
+                  )}
+                  {selectedChart === 'none' && (
+                    <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                      <p>Select a chart to display analytics</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
           {activeTab === 'spending' && (
-            <div className="max-w-4xl">
               <SpendingLimit
                 dailySpent={dailySpent}
                 dailyLimit={dailyLimit}
                 onAddExpense={handleAddExpense}
                 onAddIncome={handleAddIncome}
+                recentPurchases={recentPurchases}
+                showRecentPurchases={true}
               />
-            </div>
           )}
 
           {activeTab === 'goals' && (
-            <div className="max-w-4xl">
               <Goals
                 goals={goals}
                 onAddToGoal={handleAddToGoal}
                 onCreateGoal={handleCreateGoal}
                 onSetDefaultGoal={handleSetDefaultGoal}
               />
-            </div>
           )}
 
           {activeTab === 'analytics' && (
-            <div className="space-y-6">
-              <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)]">
-                <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">Coming Soon</h2>
-                <p className="text-[var(--text-secondary)]">Advanced analytics and insights will be available here.</p>
-              </div>
+            <div className="space-y-6 max-w-6xl">
+              <Analytics 
+                weeklySpending={weeklySpending} 
+                dailyLimit={dailyLimit} 
+                totalSaved={totalSaved}
+                totalSpent={totalSpentLast7}
+              />
             </div>
           )}
 

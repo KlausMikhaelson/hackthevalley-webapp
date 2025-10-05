@@ -3,18 +3,30 @@
 import { useState } from 'react';
 import { AttachMoney as AttachMoneyIcon, Add } from '@mui/icons-material';
 
+interface Purchase {
+  id: string;
+  amount: number;
+  category: string;
+  website: string;
+  date: Date;
+}
+
 interface SpendingLimitProps {
   dailySpent: number;
   dailyLimit: number;
   onAddExpense: (amount: number) => void;
   onAddIncome: (amount: number) => void;
+  recentPurchases?: Purchase[];
+  showRecentPurchases?: boolean;
 }
 
 export default function SpendingLimit({ 
   dailySpent, 
   dailyLimit, 
   onAddExpense, 
-  onAddIncome 
+  onAddIncome,
+  recentPurchases = [],
+  showRecentPurchases = false
 }: SpendingLimitProps) {
   const [expenseAmount, setExpenseAmount] = useState('');
   const [incomeAmount, setIncomeAmount] = useState('');
@@ -40,59 +52,93 @@ export default function SpendingLimit({
   };
 
   return (
-    <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)]">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center">
-          <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mr-4">
-            <AttachMoneyIcon className="text-white" sx={{ fontSize: 24 }} />
+    <div className={showRecentPurchases ? "flex flex-col h-[calc(100vh-2rem)]" : ""}>  
+      {/* Main Spending Limit Card */}
+      <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg p-6 border border-[var(--border-color)] flex-shrink-0">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mr-4">
+              <AttachMoneyIcon className="text-white" sx={{ fontSize: 24 }} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-[var(--foreground)]">Today's Spending</h2>
+            </div>
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-[var(--foreground)]">Spending Limit</h2>
-          </div>
+          <button
+            onClick={() => setShowTransactionDialog(true)}
+            className="w-10 h-10 btn-gradient text-white rounded-lg flex items-center justify-center transition-colors"
+          >
+            <Add sx={{ fontSize: 20 }} />  {/* Changed from text-xl and font-bold to icon */}
+          </button>
         </div>
-        <button
-          onClick={() => setShowTransactionDialog(true)}
-          className="w-10 h-10 btn-gradient text-white rounded-lg flex items-center justify-center transition-colors text-xl font-bold"
-        >
-          +
-        </button>
-      </div>
-      
-      {/* Progress Bar */}
-      <div className="mb-6">
-        <div className="flex justify-between mb-3">
-          <div>
-            <div className="text-sm text-[var(--text-secondary)]">Today's Spending</div>
-            <div className="text-2xl font-bold text-[var(--foreground)]">${dailySpent.toFixed(2)}</div>
+        
+        {/* Progress Bar */}
+        <div className="mb-6">
+          <div className="flex justify-between mb-3">
+            <div>
+              <div className="flex items-end gap-2">
+                <div className="text-2xl font-bold text-[var(--foreground)]">${dailySpent.toFixed(2)}</div>
+                <div className="text-sm text-[#a1a1aa]">out of ${remainingAmount.toFixed(2)}</div>
+              </div>
+            </div>
           </div>
-          <div className="text-right">
-            <span className={`px-2 py-1 rounded text-xs font-semibold text-white ${
-              spendingPercentage >= 100 
-                ? 'bg-red-500' 
-                : spendingPercentage >= 80 
-                  ? 'bg-yellow-500' 
-                  : 'bg-[var(--accent-primary)]'
-            }`}>
-              {spendingPercentage.toFixed(1)}%
-            </span>
+          <div className="w-full bg-[var(--border-color)] rounded-full h-6 relative">
+            <div 
+              className="h-6 rounded-full transition-all duration-500"
+              style={{ 
+                width: `${Math.min(spendingPercentage, 100)}%`,
+                background: spendingPercentage >= 100 
+                  ? `linear-gradient(90deg, var(--accent-primary), var(--accent-secondary))` // intense theme gradient for over budget
+                  : spendingPercentage >= 80 
+                    ? `linear-gradient(90deg, var(--accent-primary), var(--accent-bg))` // medium theme gradient for warning
+                    : 'var(--accent-gradient)' // normal theme gradient
+              }}
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-xs font-semibold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,1.0)]">
+                {spendingPercentage.toFixed(1)}%
+              </span>
+            </div>
           </div>
-        </div>
-        <div className="w-full bg-[var(--border-color)] rounded-full h-2">
-          <div 
-            className={`h-2 rounded-full transition-all duration-500 ${
-              spendingPercentage >= 100 
-                ? 'bg-red-500' 
-                : spendingPercentage >= 80 
-                  ? 'bg-yellow-500' 
-                  : 'bg-green-500'
-            }`}
-            style={{ width: `${Math.min(spendingPercentage, 100)}%` }}
-          />
-        </div>
-        <div className="text-sm text-[#a1a1aa] mt-2">
-          Remaining: ${remainingAmount.toFixed(2)}
         </div>
       </div>
+
+      {/* Recent Purchases List - only show when showRecentPurchases is true */}
+      {showRecentPurchases && (
+        <div className="bg-[var(--card-bg)] rounded-xl card-shadow-lg border border-[var(--border-color)] flex flex-col flex-1 overflow-hidden mt-6">
+          <div className="p-6 pb-0">
+            <h3 className="text-lg font-bold text-[var(--foreground)] mb-4">Recent Purchases</h3>
+          </div>
+          <div className="flex-1 overflow-y-auto px-6 pb-6">
+            <div className="space-y-3">
+              {recentPurchases.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-[var(--text-secondary)]">No recent purchases</p>
+                </div>
+              ) : (
+                recentPurchases.map((purchase) => (
+                  <div key={purchase.id} className="flex items-center justify-between p-3 bg-[var(--background)] rounded-lg border border-[var(--border-color)]">
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-[var(--foreground)]">{purchase.website}</p>
+                          <p className="text-sm text-[var(--text-secondary)]">{purchase.category}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-[var(--foreground)]">-${purchase.amount.toFixed(2)}</p>
+                          <p className="text-xs text-[var(--text-secondary)]">
+                            {purchase.date.toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Transaction Dialog */}
       {showTransactionDialog && (
