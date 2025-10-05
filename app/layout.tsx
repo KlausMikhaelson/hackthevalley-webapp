@@ -3,6 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppThemeProvider } from './contexts/ThemeContext';
 import { CustomThemeProvider } from './contexts/CustomThemeContext';
+import { Auth0Provider } from "@auth0/nextjs-auth0";
+import { ClerkProvider } from "@clerk/nextjs";
+import MoneyTrackerSync from './components/MoneyTrackerSync';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,11 +30,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <ClerkProvider>
+        <MoneyTrackerSync />
         <CustomThemeProvider>
           <AppThemeProvider>
-            {children}
+            <Auth0Provider>
+              {children}
+            </Auth0Provider>
           </AppThemeProvider>
         </CustomThemeProvider>
+      </ClerkProvider>
       </body>
     </html>
   );

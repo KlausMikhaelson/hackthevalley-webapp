@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Tracker Extension Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        button {
+            background: #4F46E5;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover { background: #4338CA; }
+        .result {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            border-left: 4px solid #4F46E5;
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        pre {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Money Tracker Extension Test</h1>
+        <p>Use this page to test if your webapp is correctly storing user data for the Money Tracker extension.</p>
+        
+        <div>
+            <button onclick="checkStorage()">Check localStorage</button>
+            <button onclick="clearStorage()">Clear localStorage</button>
+            <button onclick="simulateUser()">Simulate User Data</button>
+        </div>
+
+        <div id="result" class="result" style="display:none;"></div>
+    </div>
+
+    <script>
+        function checkStorage() {
+            const resultDiv = document.getElementById('result');
+            const userData = localStorage.getItem('moneyTrackerUser');
+            
+            if (userData) {
+                try {
+                    const parsed = JSON.parse(userData);
+                    resultDiv.innerHTML = `
+                        <h3 class="success">✅ User Data Found!</h3>
+                        <p><strong>Email:</strong> ${parsed.email || 'Not set'}</p>
+                        <p><strong>Name:</strong> ${parsed.name || 'Not set'}</p>
+                        <p><strong>User ID:</strong> ${parsed.id || 'Not set'}</p>
+                        <p><strong>Created At:</strong> ${new Date(parsed.createdAt).toLocaleString()}</p>
+                        <h4>Full Data:</h4>
+                        <pre>${JSON.stringify(parsed, null, 2)}</pre>
+                    `;
+                    resultDiv.style.display = 'block';
+                } catch (e) {
+                    resultDiv.innerHTML = `<h3 class="error">❌ Error parsing data</h3><p>${e.message}</p>`;
+                    resultDiv.style.display = 'block';
+                }
+            } else {
+                resultDiv.innerHTML = `
+                    <h3 class="error">❌ No User Data Found</h3>
+                    <p>The Money Tracker extension won't be able to access user information.</p>
+                    <p><strong>Next Steps:</strong></p>
+                    <ol>
+                        <li>Sign in to your webapp</li>
+                        <li>Come back to this page and click "Check localStorage" again</li>
+                    </ol>
+                `;
+                resultDiv.style.display = 'block';
+            }
+        }
+
+        function clearStorage() {
+            localStorage.removeItem('moneyTrackerUser');
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<h3 class="success">🗑️ localStorage Cleared</h3>';
+            resultDiv.style.display = 'block';
+        }
+
+        function simulateUser() {
+            const testUser = {
+                id: 'test_user_123',
+                email: 'test@example.com',
+                name: 'Test User',
+                firstName: 'Test',
+                lastName: 'User',
+                imageUrl: 'https://via.placeholder.com/150',
+                createdAt: Date.now()
+            };
+            
+            localStorage.setItem('moneyTrackerUser', JSON.stringify(testUser));
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<h3 class="success">✅ Test user data created! Click "Check localStorage" to view.</h3>';
+            resultDiv.style.display = 'block';
+        }
+
+        // Auto-check on page load
+        window.onload = checkStorage;
+    </script>
+</body>
+</html>
