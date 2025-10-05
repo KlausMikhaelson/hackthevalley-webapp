@@ -5,23 +5,63 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start"
+    "start": "next start",
+    "test": "jest --coverage",
+    "test:quick": "jest --bail --findRelatedTests",
+    "test:watch": "jest --watch",
+    "lint": "next lint",
+    "prepare": "husky install"
   },
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7.3.4",
-    "@mui/material": "^7.3.4",
-    "next": "^15.5.4",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "@google-cloud/storage": "^7.17.1",
+    "@google/genai": "^1.22.0",
+    "dotenv": "^17.2.3",
+    "next": "15.5.4",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/jest": "^29.5.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "eslint": "^9.37.0",
+    "eslint-config-next": "^15.5.4",
+    "husky": "^8.0.3",
+    "jest": "^29.7.0",
+    "jest-environment-node": "^29.7.0",
     "tailwindcss": "^4",
+    "ts-jest": "^29.1.0",
     "typescript": "^5"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/.next/"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.js",
+      "**/__tests__/**/*.ts",
+      "**/?(*.)+(spec|test).[jt]s"
+    ],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1"
+    },
+    "transform": {
+      "^.+\\.tsx?$": [
+        "ts-jest",
+        {
+          "tsconfig": {
+            "jsx": "react",
+            "esModuleInterop": true,
+            "allowSyntheticDefaultImports": true
+          },
+          "isolatedModules": true
+        }
+      ]
+    }
   }
 }
